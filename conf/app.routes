@@ -1,0 +1,9 @@
+# Routes
+# This file defines all application app.routes (Higher priority app.routes first)
+# ~~~~
+
+HEAD        /validate/school/:schoolName                               controllers.ValidationController.validateSchool(schoolName)
+HEAD        /validate/teacher/:userName/school/:schoolName             controllers.ValidationController.validateTeacher(userName, schoolName)
+
+GET         /utilities/:orgId/pending-deversity-enrolments             controllers.UtilitiesController.getPendingEnrolmentsCount(orgId)
+
