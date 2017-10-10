@@ -13,30 +13,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package services
+package services.selectors
 
-import javax.inject.{Inject, Singleton}
+import reactivemongo.bson.BSONDocument
 
-import com.codahale.metrics.Timer
-import com.kenshoo.play.metrics.Metrics
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-
-// $COVERAGE-OFF$
-
-@Singleton
-class MetricsService @Inject()(metrics: Metrics) {
-  val mongoResponseTimer = metrics.defaultRegistry.timer("mongo-response-timer")
-
-  def runMetricsTimer[T](timer: Timer.Context)(f: => Future[T]): Future[T] = {
-    f map { data =>
-      timer.stop()
-      data
-    } recover {
-      case e =>
-        timer.stop()
-        throw e
-    }
-  }
+object UserAccountSelectors {
+  def userIdSelector(userId: String): BSONDocument = BSONDocument("userId" -> userId)
+  def teacherSelector(userName: String, schoolName: String): BSONDocument = BSONDocument(
+    "userName"                      -> userName,
+    "deversityEnrolment.schoolName" -> schoolName
+  )
 }

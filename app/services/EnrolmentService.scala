@@ -17,26 +17,26 @@ package services
 
 import javax.inject.{Inject, Singleton}
 
-import com.codahale.metrics.Timer
-import com.kenshoo.play.metrics.Metrics
+import com.cjwwdev.reactivemongo.MongoUpdatedResponse
+import com.cjwwdev.security.encryption.DataSecurity
+import models.DeversityEnrolment
+import repositories.UserAccountRepository
+import services.selectors.UserAccountSelectors.userIdSelector
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-// $COVERAGE-OFF$
-
 @Singleton
-class MetricsService @Inject()(metrics: Metrics) {
-  val mongoResponseTimer = metrics.defaultRegistry.timer("mongo-response-timer")
+class EnrolmentService @Inject()(userAccountRepository: UserAccountRepository) {
+  def createDeversityId(userId: String): Future[String] = {
+    userAccountRepository.createDeversityId(userId) map DataSecurity.encryptString
+  }
 
-  def runMetricsTimer[T](timer: Timer.Context)(f: => Future[T]): Future[T] = {
-    f map { data =>
-      timer.stop()
-      data
-    } recover {
-      case e =>
-        timer.stop()
-        throw e
-    }
+  def getEnrolment(userId: String): Future[DeversityEnrolment] = {
+    userAccountRepository.getUserBySelector(userIdSelector(userId)) map(_.deversityEnrolment)
+  }
+
+  def updateDeversityEnrolment(userId: String, deversityEnrolment: DeversityEnrolment): Future[MongoUpdatedResponse] = {
+    userAccountRepository.updateDeversityEnrolment(userId, deversityEnrolment)
   }
 }

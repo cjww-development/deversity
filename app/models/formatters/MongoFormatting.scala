@@ -19,7 +19,7 @@ import play.api.libs.json._
 
 object MongoFormatting extends BaseFormatting {
   def standardStringRead: Reads[String] = new Reads[String] {
-    override def reads(json: JsValue) = json match {
+    override def reads(json: JsValue): JsResult[String] = json match {
       case JsString(str)  => JsSuccess(str)
       case _              => JsError()
     }

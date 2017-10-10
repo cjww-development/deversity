@@ -15,6 +15,7 @@
 // limitations under the License.
 package services
 
+import com.cjwwdev.security.encryption.DataSecurity
 import common.MissingAccountException
 import helpers.{ComponentMocks, Fixtures, GenericHelpers}
 import org.scalatest.mockito.MockitoSugar

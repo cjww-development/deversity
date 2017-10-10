@@ -23,7 +23,7 @@ trait Fixtures extends TestDataHelper {
   val testOrgContext: AuthContext = AuthContext(
     contextId = generateTestSystemId(CONTEXT),
     user = User(
-      userId         = generateTestSystemId(USER),
+      id             = generateTestSystemId(USER),
       firstName      = None,
       lastName       = None,
       orgName        = Some("testOrgName"),

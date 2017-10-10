@@ -21,7 +21,9 @@ import com.cjwwdev.auth.actions.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
 import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.security.encryption.DataSecurity
+import common.AlreadyExistsException
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent}
 import services.UtilitiesService
 import utils.BackendController
@@ -36,12 +38,40 @@ class UtilitiesController @Inject()(utilitiesService: UtilitiesService,
   def getPendingEnrolmentsCount(orgId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(ORG_USER, orgId) {
       authorised(orgId) { context =>
-        utilitiesService.getPendingEnrolmentCount(context.user.userId) map { count =>
+        utilitiesService.getPendingEnrolmentCount(context.user.id) map { count =>
           Ok(DataSecurity.encryptType(count))
         } recover {
           case e =>
             Logger.error(s"[UtilitiesController] - [getPendingEnrolmentCount] - There was a problem getting the count for org id $orgId", e)
             InternalServerError
+        }
+      }
+    }
+  }
+
+  def getSchoolDetails(orgId: String): Action[AnyContent] = Action.async { implicit request =>
+    validateAs(ORG_USER, orgId) {
+      authorised(orgId) { context =>
+        utilitiesService.getSchoolDetails(context.user.orgName.get) map { details =>
+          Ok(DataSecurity.encryptType(details))
+        } recover {
+          case _ => NotFound
+        }
+      }
+    }
+  }
+
+  def getTeacherDetails(userId: String, tUserName: String, schoolName: String): Action[AnyContent] = Action.async { implicit request =>
+    validateAs(USER, userId) {
+      authorised(userId) { context =>
+        withEncryptedUrl(tUserName) { tDecName =>
+          withEncryptedUrl(schoolName) { schoolDecName =>
+            utilitiesService.getTeacherDetails(tDecName, schoolDecName) map { teacherDetails =>
+              Ok(DataSecurity.encryptType(teacherDetails))
+            } recover {
+              case _ => NotFound
+            }
+          }
         }
       }
     }

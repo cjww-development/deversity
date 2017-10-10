@@ -2,8 +2,12 @@
 # This file defines all application app.routes (Higher priority app.routes first)
 # ~~~~
 
-HEAD        /validate/school/:schoolName                               controllers.ValidationController.validateSchool(schoolName)
-HEAD        /validate/teacher/:userName/school/:schoolName             controllers.ValidationController.validateTeacher(userName, schoolName)
+HEAD        /validate/school/:schoolName                                   controllers.ValidationController.validateSchool(schoolName)
+HEAD        /validate/teacher/:userName/school/:schoolName                 controllers.ValidationController.validateTeacher(userName, schoolName)
 
-GET         /utilities/:orgId/pending-deversity-enrolments             controllers.UtilitiesController.getPendingEnrolmentsCount(orgId)
+GET         /utilities/:orgId/pending-deversity-enrolments                 controllers.UtilitiesController.getPendingEnrolmentsCount(orgId)
+GET         /user/:userId/teacher/:userName/school/:schoolName/details     controllers.UtilitiesController.getTeacherDetails(userId, userName, schoolName)
 
+PATCH       /:userId/create-deversity-id                                   controllers.EnrolmentController.createDeversityId(userId)
+GET         /enrolment/:userId/deversity                                   controllers.EnrolmentController.getDeversityEnrolment(userId)
+GET         /account/:orgId/school/:userId/deversity-info                  controllers.EnrolmentController.getDeversityEnrolmentForConfirmation(orgId, userId)

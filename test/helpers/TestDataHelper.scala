@@ -23,9 +23,10 @@ import scala.util.Random.nextString
 
 trait TestDataHelper {
 
-  val USER    = "user"
-  val ORG     = "org-user"
-  val CONTEXT = "context"
+  val USER      = "user"
+  val ORG       = "org-user"
+  val CONTEXT   = "context"
+  val DEVERSITY = "deversity"
 
   val uuid = UUID.randomUUID()
 

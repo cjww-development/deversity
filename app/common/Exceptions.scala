@@ -16,3 +16,5 @@
 package common
 
 class MissingAccountException(msg: String) extends Exception(msg)
+class UpdateFailedException(msg: String) extends Exception(msg)
+class AlreadyExistsException(msg: String) extends Exception(msg)

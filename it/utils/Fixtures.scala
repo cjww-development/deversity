@@ -26,11 +26,27 @@ trait Fixtures extends TestDataHelper {
   val testOrgContext: AuthContext = AuthContext(
     contextId = testContextId,
     user = User(
-      userId         = testOrgId,
+      id             = testOrgId,
       firstName      = None,
       lastName       = None,
       orgName        = Some("testOrgName"),
       credentialType = "organisation",
+      role           = None
+    ),
+    basicDetailsUri = "/test/uri",
+    enrolmentsUri   = "/test/uri",
+    settingsUri     = "/test/uri",
+    createdAt       = now
+  )
+
+  val testUserContext: AuthContext = AuthContext(
+    contextId = testContextId,
+    user = User(
+      id = testUserId,
+      firstName      = Some("testFirstName"),
+      lastName       = Some("testLastName"),
+      orgName        = None,
+      credentialType = "individual",
       role           = None
     ),
     basicDetailsUri = "/test/uri",

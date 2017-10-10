@@ -19,8 +19,10 @@ import javax.inject.{Inject, Singleton}
 
 import com.cjwwdev.reactivemongo.MongoDatabase
 import com.codahale.metrics.Timer
+import common.MissingAccountException
 import models.OrgAccount
 import models.formatters.{BaseFormatting, MongoFormatting}
+import play.api.Logger
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
@@ -32,9 +34,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class OrgAccountRepository @Inject()(metricsService: MetricsService) extends MongoDatabase("org-accounts"){
 
-  implicit val mongoFormatting: BaseFormatting = MongoFormatting
+  private implicit val mongoFormatting: BaseFormatting = MongoFormatting
 
-  def mongoTimer: Timer.Context = metricsService.mongoResponseTimer.time()
+  private def mongoTimer: Timer.Context = metricsService.mongoResponseTimer.time()
+
+  private def getSelectorHead(selector: BSONDocument): (String, String) = (selector.elements.head._1, selector.elements.head._2.toString)
 
   override def indexes: Seq[Index] = Seq(
     Index(
@@ -45,18 +49,17 @@ class OrgAccountRepository @Inject()(metricsService: MetricsService) extends Mon
     )
   )
 
-  private def orgUserNameSelector(orgUserName: String): BSONDocument = BSONDocument("orgUserName" -> orgUserName)
-  private def orgIdSelector(orgId: String): BSONDocument = BSONDocument("orgId" -> orgId)
-
-  def getSchoolById(orgId: String): Future[Option[OrgAccount]] = {
+  def getSchool(selector: BSONDocument): Future[OrgAccount] = {
+    val elements = getSelectorHead(selector)
     metricsService.runMetricsTimer(mongoTimer) {
-      collection flatMap(_.find(orgIdSelector(orgId)).one[OrgAccount])
-    }
-  }
-
-  def getSchoolByUserName(orgUserName: String): Future[Option[OrgAccount]] = {
-    metricsService.runMetricsTimer(mongoTimer) {
-      collection flatMap(_.find(orgUserNameSelector(orgUserName)).one[OrgAccount])
+      collection flatMap {
+        _.find(selector).one[OrgAccount] map {
+          case Some(acc) => acc
+          case _         =>
+            Logger.error(s"[OrgAccountRepository] - [getSchool] - No org account found based on ${elements._1} with value ${elements._2}")
+            throw new MissingAccountException(s"No org account found based on ${elements._1} with value ${elements._2}")
+        }
+      }
     }
   }
 }

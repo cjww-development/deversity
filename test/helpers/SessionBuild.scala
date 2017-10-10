@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2017 the original author or authors.
+// Copyright (C) 2011-2012 the original author or authors.
 // See the LICENCE.txt file distributed with this work for additional
 // information regarding copyright ownership.
 //
@@ -13,30 +13,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package services
 
-import javax.inject.{Inject, Singleton}
+package helpers
 
-import com.codahale.metrics.Timer
-import com.kenshoo.play.metrics.Metrics
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-
-// $COVERAGE-OFF$
-
-@Singleton
-class MetricsService @Inject()(metrics: Metrics) {
-  val mongoResponseTimer = metrics.defaultRegistry.timer("mongo-response-timer")
-
-  def runMetricsTimer[T](timer: Timer.Context)(f: => Future[T]): Future[T] = {
-    f map { data =>
-      timer.stop()
-      data
-    } recover {
-      case e =>
-        timer.stop()
-        throw e
-    }
+trait SessionBuild {
+  def buildRequest(appId: String): FakeRequest[_] = {
+    FakeRequest().withHeaders(
+      "appId" -> appId,
+      CONTENT_TYPE -> TEXT
+    )
   }
 }

@@ -17,15 +17,10 @@
 package app
 
 import com.cjwwdev.security.encryption.DataSecurity
-import models.formatters.MongoFormatting
-import models.{OrgAccount, UserAccount}
-import play.api.libs.json.OFormat
-import utils.{AccountEnums, IntegrationTestUtils}
+import utils.IntegrationStubbing
 import play.api.test.Helpers._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-class ValidationISpec extends IntegrationTestUtils {
+class ValidationISpec extends IntegrationStubbing {
 
   val encryptedSchoolName = DataSecurity.encryptString(testOrgAccount.orgUserName)
   val encryptedUserName = DataSecurity.encryptString("tUserName")
@@ -33,30 +28,21 @@ class ValidationISpec extends IntegrationTestUtils {
   s"/validate/school/:schoolName" should {
     "return an OK" when {
       "the school has been validated" in {
+        given
+          .user.orgUser.isSetup
 
-        implicit val format: OFormat[OrgAccount] = OrgAccount.format(MongoFormatting)
-
-        await(orgAccountRepository.collection.flatMap(_.insert[OrgAccount](testOrgAccount)))
-
-        val request = client(s"$appUrl/validate/school/$encryptedSchoolName")
-          .withHeaders("appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130")
-          .head()
-
-        val result = await(request)
-        result.status mustBe OK
-
-        afterITest()
+        whenReady(client(s"$appUrl/validate/school/$encryptedSchoolName").head()) { res =>
+          res.status mustBe OK
+        }
       }
     }
 
     "return a Not found" when {
       "the school has not been validated" in {
-        val request = client(s"$appUrl/validate/school/$encryptedSchoolName")
-          .withHeaders("appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130")
-          .head()
 
-        val result = await(request)
-        result.status mustBe NOT_FOUND
+        whenReady(client(s"$appUrl/validate/school/$encryptedSchoolName").head()) { res =>
+          res.status mustBe NOT_FOUND
+        }
       }
     }
   }
@@ -64,30 +50,20 @@ class ValidationISpec extends IntegrationTestUtils {
   "/validate/teacher/:userName/school/:schoolName" should {
     "return an OK" when {
       "the teacher has been validated" in {
+        given
+          .user.individualUser.isSetup
 
-        implicit val format: OFormat[UserAccount] = UserAccount.format(MongoFormatting)
-
-        await(userAccountRepository.collection.flatMap(_.insert[UserAccount](testUserAccount(AccountEnums.pending, AccountEnums.teacher))))
-
-        val request = client(s"$appUrl/validate/teacher/$encryptedUserName/school/$encryptedSchoolName")
-          .withHeaders("appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130")
-          .head()
-
-        val result = await(request)
-        result.status mustBe OK
-
-        afterITest()
+        whenReady(client(s"$appUrl/validate/teacher/$encryptedUserName/school/$encryptedSchoolName").head()) { res =>
+          res.status mustBe OK
+        }
       }
     }
 
     "return a Not found" when {
       "the teacher has not been validated" in {
-        val request = client(s"$appUrl/validate/teacher/$encryptedUserName/school/$encryptedSchoolName")
-          .withHeaders("appId" -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130")
-          .head()
-
-        val result = await(request)
-        result.status mustBe NOT_FOUND
+        whenReady(client(s"$appUrl/validate/teacher/$encryptedUserName/school/$encryptedSchoolName").head()) { res =>
+          res.status mustBe NOT_FOUND
+        }
       }
     }
   }

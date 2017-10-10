@@ -21,17 +21,19 @@ import scala.util.Random.nextString
 
 trait TestDataHelper {
 
-  val USER    = "user"
-  val ORG     = "org-user"
-  val CONTEXT = "context"
+  val USER      = "user"
+  val ORG       = "org-user"
+  val CONTEXT   = "context"
+  val DEVERSITY = "deversity"
 
   val uuid = UUID.randomUUID()
 
   private def generateTestSystemId(idType: String): String = s"$idType-$uuid"
 
-  val testContextId = generateTestSystemId(CONTEXT)
-  val testOrgId     = generateTestSystemId(ORG)
-  val testUserId    = generateTestSystemId(USER)
+  val testContextId   = generateTestSystemId(CONTEXT)
+  val testOrgId       = generateTestSystemId(ORG)
+  val testUserId      = generateTestSystemId(USER)
+  val testDeversityId = generateTestSystemId(DEVERSITY)
 
   val createTestUserName: String = nextString(10)
 

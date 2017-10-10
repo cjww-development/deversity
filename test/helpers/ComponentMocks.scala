@@ -19,7 +19,7 @@ import com.cjwwdev.auth.connectors.AuthConnector
 import com.cjwwdev.config.ConfigurationLoader
 import org.scalatest.mockito.MockitoSugar
 import repositories.{OrgAccountRepository, UserAccountRepository}
-import services.{UtilitiesService, ValidationService}
+import services.{EnrolmentService, UtilitiesService, ValidationService}
 
 trait ComponentMocks {
   this: MockitoSugar =>
@@ -29,7 +29,10 @@ trait ComponentMocks {
 
   val mockValidationService = mock[ValidationService]
   val mockUtilitiesService  = mock[UtilitiesService]
+  val mockEnrolmentService  = mock[EnrolmentService]
 
   val mockUserAccountRepo = mock[UserAccountRepository]
   val mockOrgAccountRepo  = mock[OrgAccountRepository]
+
+  val AUTH_SERVICE_ID     = mockConfig.getApplicationId("auth-service")
 }

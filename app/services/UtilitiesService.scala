@@ -17,26 +17,48 @@ package services
 
 import javax.inject.{Inject, Singleton}
 
-import common.MissingAccountException
+import models.{OrgAccount, OrgDetails, TeacherDetails, UserAccount}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import repositories.{OrgAccountRepository, UserAccountRepository}
+import services.selectors.OrgAccountSelectors.{orgIdSelector, orgUserNameSelector}
+import services.selectors.UserAccountSelectors.teacherSelector
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+
 
 @Singleton
 class UtilitiesService @Inject()(userAccountRepository: UserAccountRepository, orgAccountRepository: OrgAccountRepository) {
   def getPendingEnrolmentCount(orgId: String): Future[JsValue] = {
     for {
-      orgAcc <- orgAccountRepository.getSchoolById(orgId) map {
-        case Some(acc) => acc
-        case None      => throw new MissingAccountException(s"No org account found for org id $orgId")
-      }
+      orgAcc <- orgAccountRepository.getSchool(orgIdSelector(orgId))
       count  <- userAccountRepository.getPendingEnrolmentCount(orgAcc.orgUserName)
     } yield {
       Logger.info(s"[UtilitiesService] - [getPendingEnrolmentCount] - Got pending enrolment count for org id $orgId")
       Json.parse(s"""{"pendingCount" : $count}""")
     }
   }
+
+  def getSchoolDetails(orgUserName: String): Future[OrgDetails] = {
+    orgAccountRepository.getSchool(orgUserNameSelector(orgUserName)) map accountToDetails
+  }
+
+  def getTeacherDetails(userName: String, schoolName: String): Future[TeacherDetails] = {
+    userAccountRepository.getUserBySelector(teacherSelector(userName, schoolName)) map accountToTeacherDetails
+  }
+
+  private def accountToDetails(orgAccount: OrgAccount): OrgDetails = OrgDetails(
+    orgName  = orgAccount.orgName,
+    initials = orgAccount.initials,
+    location = orgAccount.location
+  )
+
+  private def accountToTeacherDetails(userAccount: UserAccount): TeacherDetails = TeacherDetails(
+    userId    = userAccount.userId,
+    title     = userAccount.deversityEnrolment.title.get,
+    lastName  = userAccount.lastName,
+    room      = userAccount.deversityEnrolment.room.get,
+    status    = userAccount.deversityEnrolment.statusConfirmed
+  )
 }

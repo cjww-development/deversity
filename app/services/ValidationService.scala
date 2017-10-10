@@ -20,6 +20,8 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.Logger
 import repositories.{OrgAccountRepository, UserAccountRepository}
+import services.selectors.UserAccountSelectors.teacherSelector
+import services.selectors.OrgAccountSelectors.orgUserNameSelector
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,18 +30,20 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ValidationService @Inject()(userAccountRepository: UserAccountRepository, orgAccountRepository: OrgAccountRepository) {
 
   def validateSchool(schoolName: String): Future[Boolean] = {
-    orgAccountRepository.getSchoolByUserName(schoolName) map {
-      case Some(_) => true
-      case None    =>
+    orgAccountRepository.getSchool(orgUserNameSelector(schoolName)) map {
+      _ => true
+    } recover {
+      case _ =>
         Logger.warn(s"[ValidationService] - [validateSchool] - There is no registered school by the name $schoolName")
         false
     }
   }
 
   def validateTeacher(userName: String, schoolName: String): Future[Boolean] = {
-    userAccountRepository.getTeacher(userName, schoolName) map {
-      case Some(_) => true
-      case None    =>
+    userAccountRepository.getUserBySelector(teacherSelector(userName, schoolName)) map {
+      _ => true
+    } recover {
+      case _ =>
         Logger.warn(s"[ValidationService] - [validateTeacher] - There is no confirmed or pending teacher at $schoolName by the given username")
         false
     }

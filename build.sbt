@@ -34,8 +34,7 @@ lazy val scoverageSettings = Seq(
   ScoverageKeys.coverageExcludedPackages  := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;config.*;.*(AuthService|BuildInfo|Routes).*",
   ScoverageKeys.coverageMinimum           := 80,
   ScoverageKeys.coverageFailOnMinimum     := false,
-  ScoverageKeys.coverageHighlighting      := true,
-  ScoverageKeys.coverageExcludedFiles     := "services.MetricsService"
+  ScoverageKeys.coverageHighlighting      := true
 )
 
 lazy val root = (project in file("."))
@@ -51,31 +50,27 @@ lazy val root = (project in file("."))
 PlayKeys.devSettings := Seq("play.server.http.port" -> "9973")
 
 val cjwwDeps: Seq[ModuleID] = Seq(
-  "com.cjww-dev.libs" % "data-security_2.11"         % "2.6.1",
-  "com.cjww-dev.libs" % "reactive-mongo_2.11"        % "3.3.0",
-  "com.cjww-dev.libs" % "backend-auth_2.11"          % "2.8.0",
-  "com.cjww-dev.libs" % "application-utilities_2.11" % "2.1.0",
-  "com.cjww-dev.libs" % "metrics-reporter_2.11"      % "0.3.0"
+  "com.cjww-dev.libs" % "data-security_2.11"         % "2.7.0",
+  "com.cjww-dev.libs" % "reactive-mongo_2.11"        % "3.4.0",
+  "com.cjww-dev.libs" % "backend-auth_2.11"          % "2.9.0",
+  "com.cjww-dev.libs" % "application-utilities_2.11" % "2.2.0",
+  "com.cjww-dev.libs" % "metrics-reporter_2.11"      % "0.4.0"
 )
 
 val codeDeps: Seq[ModuleID] = Seq(
-  "com.kenshoo" % "metrics-play_2.10" % "2.4.0_0.4.0"
+  "com.kenshoo" % "metrics-play_2.10" % "2.4.0_0.4.0",
+  filters
 )
 
 val testDeps: Seq[ModuleID] = Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1"  % Test,
-  "org.mockito"             % "mockito-core"       % "2.8.47" % Test
-)
-
-val itTestDeps: Seq[ModuleID] = Seq(
-  "com.github.tomakehurst" % "wiremock" % "2.8.0" % IntegrationTest
+  "com.cjww-dev.libs" % "testing-framework_2.11" % "0.1.0"
 )
 
 libraryDependencies ++= cjwwDeps
 libraryDependencies ++= codeDeps
 libraryDependencies ++= testDeps
-libraryDependencies ++= itTestDeps
-libraryDependencies += filters
+
+resolvers += "cjww-dev" at "http://dl.bintray.com/cjww-development/releases"
 
 herokuAppName in compile := "cjww-deversity-backend"
 

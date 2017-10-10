@@ -28,6 +28,7 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{WSClient, WSRequest}
+import play.api.test.Helpers._
 import repositories.{OrgAccountRepository, UserAccountRepository}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
@@ -79,15 +80,14 @@ trait IntegrationTestUtils extends PlaySpec with Fixtures with GuiceOneServerPer
     )
   }
 
-  override def beforeEach(): Unit = {
-    resetWm()
-  }
+  override def beforeEach(): Unit = resetWm()
 
-  override def beforeAll(): Unit = {
-    startWmServer()
-  }
+  override def beforeAll(): Unit = startWmServer()
+
+  override def afterEach(): Unit = afterITest()
 
   override def afterAll(): Unit = {
+    afterITest()
     stopWmServer()
   }
 
@@ -98,7 +98,11 @@ trait IntegrationTestUtils extends PlaySpec with Fixtures with GuiceOneServerPer
 
   lazy val ws = app.injector.instanceOf(classOf[WSClient])
 
-  def client(url: String): WSRequest = ws.url(url)
+  def client(url: String): WSRequest = ws.url(url).withHeaders(
+    "appId"       -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
+    "contextId"   -> testContextId,
+    CONTENT_TYPE  -> TEXT
+  )
 
   def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, 5.seconds)
 

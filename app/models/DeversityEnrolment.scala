@@ -30,7 +30,7 @@ case class DeversityEnrolment(statusConfirmed: String,
 object DeversityEnrolment {
   implicit def format(implicit formatters: BaseFormatting): Format[DeversityEnrolment] = OFormat(reads(formatters), writes)
 
-  def reads(formatters: BaseFormatting): Reads[DeversityEnrolment] = (
+  def reads(implicit formatters: BaseFormatting): Reads[DeversityEnrolment] = (
     (__ \ "statusConfirmed").read[String](formatters.statusConfirmedReads) and
     (__ \ "schoolName").read[String] and
     (__ \ "role").read[String](formatters.roleReads) and
