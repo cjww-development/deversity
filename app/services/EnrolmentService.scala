@@ -32,8 +32,8 @@ class EnrolmentService @Inject()(userAccountRepository: UserAccountRepository) {
     userAccountRepository.createDeversityId(userId) map DataSecurity.encryptString
   }
 
-  def getEnrolment(userId: String): Future[DeversityEnrolment] = {
-    userAccountRepository.getUserBySelector(userIdSelector(userId)) map(_.deversityEnrolment)
+  def getEnrolment(userId: String): Future[Option[DeversityEnrolment]] = {
+    userAccountRepository.getUserBySelector(userIdSelector(userId)) map(_.deversityDetails)
   }
 
   def updateDeversityEnrolment(userId: String, deversityEnrolment: DeversityEnrolment): Future[MongoUpdatedResponse] = {

@@ -56,9 +56,9 @@ class UtilitiesService @Inject()(userAccountRepository: UserAccountRepository, o
 
   private def accountToTeacherDetails(userAccount: UserAccount): TeacherDetails = TeacherDetails(
     userId    = userAccount.userId,
-    title     = userAccount.deversityEnrolment.title.get,
+    title     = userAccount.deversityDetails.get.title.get,
     lastName  = userAccount.lastName,
-    room      = userAccount.deversityEnrolment.room.get,
-    status    = userAccount.deversityEnrolment.statusConfirmed
+    room      = userAccount.deversityDetails.get.room.get,
+    status    = userAccount.deversityDetails.get.statusConfirmed
   )
 }

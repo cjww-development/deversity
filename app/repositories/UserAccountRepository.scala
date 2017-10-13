@@ -59,7 +59,7 @@ class UserAccountRepository @Inject()(metricsService: MetricsService) extends Mo
     collection flatMap {
       _.find(selector).one[UserAccount] map {
         case Some(acc) => acc
-        case None      =>
+        case _         =>
           Logger.error(s"[UserAccountRepository] - [getUserBySelector] - Could not find user account based on ${elements._1} with value ${elements._2}")
           throw new MissingAccountException(s"No user account found based on ${elements._1} with value ${elements._2}")
       }

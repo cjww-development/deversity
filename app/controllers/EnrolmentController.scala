@@ -34,7 +34,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class EnrolmentController @Inject()(val authConnector: AuthConnector,
                                     val config: ConfigurationLoader,
                                     enrolmentService: EnrolmentService) extends BackendController with Authorisation {
-  def createDeversityId(userId: String): Action[AnyContent] = Action.async { implicit request =>
+  def createDeversityId(userId: String): Action[String] = Action.async(parse.text) { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { context =>
         enrolmentService.createDeversityId(context.user.id) map { devId =>
@@ -51,8 +51,9 @@ class EnrolmentController @Inject()(val authConnector: AuthConnector,
   def getDeversityEnrolment(userId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { context =>
-        enrolmentService.getEnrolment(context.user.id) map { enr =>
-          Ok(DataSecurity.encryptType[DeversityEnrolment](enr))
+        enrolmentService.getEnrolment(context.user.id) map {
+          case Some(enr) => Ok(DataSecurity.encryptType[DeversityEnrolment](enr))
+          case None      => NotFound
         } recover {
           case _: MissingAccountException => NotFound
           case _                          => InternalServerError

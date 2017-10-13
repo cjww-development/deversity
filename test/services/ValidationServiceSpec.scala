@@ -15,6 +15,7 @@
 // limitations under the License.
 package services
 
+import common.MissingAccountException
 import helpers.{AccountEnums, ComponentMocks, Fixtures, GenericHelpers}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -30,8 +31,8 @@ class ValidationServiceSpec extends PlaySpec with MockitoSugar with GenericHelpe
   "validateSchool" should {
     "return true" when {
       "a school has been successfully validated" in {
-        when(mockOrgAccountRepo.getSchoolByUserName(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(Some(testOrgAccount)))
+        when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(testOrgAccount))
 
         val result = await(testService.validateSchool("tSchoolName"))
         result mustBe true
@@ -40,8 +41,8 @@ class ValidationServiceSpec extends PlaySpec with MockitoSugar with GenericHelpe
 
     "return false" when {
       "a school has not been validated" in {
-        when(mockOrgAccountRepo.getSchoolByUserName(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(None))
+        when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
+          .thenReturn(Future.failed(new MissingAccountException("")))
 
         val result = await(testService.validateSchool("tSchoolName"))
         result mustBe false
@@ -52,8 +53,8 @@ class ValidationServiceSpec extends PlaySpec with MockitoSugar with GenericHelpe
   "validateTeacher" should {
     "return true" when {
       "a teacher has been successfully validated" in {
-        when(mockUserAccountRepo.getTeacher(ArgumentMatchers.any(), ArgumentMatchers.any()))
-          .thenReturn(Future.successful(Some(testUserAccount(AccountEnums.pending, AccountEnums.teacher))))
+        when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(testUserAccount(AccountEnums.pending, AccountEnums.teacher)))
 
         val result = await(testService.validateTeacher(createTestUserName, "tSchoolName"))
         result mustBe true
@@ -62,8 +63,8 @@ class ValidationServiceSpec extends PlaySpec with MockitoSugar with GenericHelpe
 
     "return false" when {
       "a teacher has not been validated" in {
-        when(mockUserAccountRepo.getTeacher(ArgumentMatchers.any(), ArgumentMatchers.any()))
-          .thenReturn(Future.successful(None))
+        when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any()))
+          .thenReturn(Future.failed(new MissingAccountException("")))
 
         val result = await(testService.validateTeacher(createTestUserName, "tSchoolName"))
         result mustBe false

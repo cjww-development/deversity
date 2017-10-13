@@ -49,13 +49,15 @@ class UtilitiesController @Inject()(utilitiesService: UtilitiesService,
     }
   }
 
-  def getSchoolDetails(orgId: String): Action[AnyContent] = Action.async { implicit request =>
-    validateAs(ORG_USER, orgId) {
-      authorised(orgId) { context =>
-        utilitiesService.getSchoolDetails(context.user.orgName.get) map { details =>
-          Ok(DataSecurity.encryptType(details))
-        } recover {
-          case _ => NotFound
+  def getSchoolDetails(userId: String, orgUserName: String): Action[AnyContent] = Action.async { implicit request =>
+    validateAs(USER, userId) {
+      authorised(userId) { _ =>
+        withEncryptedUrl(orgUserName) { oUN =>
+          utilitiesService.getSchoolDetails(oUN) map { details =>
+            Ok(DataSecurity.encryptType(details))
+          } recover {
+            case _ => NotFound
+          }
         }
       }
     }

@@ -45,7 +45,7 @@ class EnrolmentServiceSpec extends PlaySpec with MockitoSugar with GenericHelper
 
       val testAcc = testUserAccount(AccountEnums.pending, AccountEnums.student)
 
-      when(mockUserAccountRepo.getUserById(ArgumentMatchers.any()))
+      when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any()))
         .thenReturn(Future.successful(testAcc))
 
       val result = await(testService.getEnrolment(generateTestSystemId(USER)))

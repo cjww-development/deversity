@@ -21,6 +21,6 @@ object UserAccountSelectors {
   def userIdSelector(userId: String): BSONDocument = BSONDocument("userId" -> userId)
   def teacherSelector(userName: String, schoolName: String): BSONDocument = BSONDocument(
     "userName"                      -> userName,
-    "deversityEnrolment.schoolName" -> schoolName
+    "deversityDetails.schoolName" -> schoolName
   )
 }

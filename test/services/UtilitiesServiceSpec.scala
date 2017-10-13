@@ -33,8 +33,8 @@ class UtilitiesServiceSpec extends PlaySpec with MockitoSugar with GenericHelper
   "getPendingEnrolmentCount" should {
     "return a JsValue" when {
       "the count has been calculated" in {
-        when(mockOrgAccountRepo.getSchoolById(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(Some(testOrgAccount)))
+        when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(testOrgAccount))
 
         when(mockUserAccountRepo.getPendingEnrolmentCount(ArgumentMatchers.any()))
           .thenReturn(Future.successful(1))
@@ -46,7 +46,7 @@ class UtilitiesServiceSpec extends PlaySpec with MockitoSugar with GenericHelper
 
     "throw a missing account exception" when {
       "the given orgId doesn't matched a held account" in {
-        when(mockOrgAccountRepo.getSchoolById(ArgumentMatchers.any()))
+        when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
           .thenReturn(Future.failed(new MissingAccountException("")))
 
         intercept[MissingAccountException](await(testService.getPendingEnrolmentCount(generateTestSystemId(ORG))))
