@@ -49,7 +49,7 @@ class EnrolmentServiceSpec extends PlaySpec with MockitoSugar with GenericHelper
         .thenReturn(Future.successful(testAcc))
 
       val result = await(testService.getEnrolment(generateTestSystemId(USER)))
-      result mustBe testAcc.deversityEnrolment
+      result mustBe testAcc.deversityDetails
     }
   }
 }

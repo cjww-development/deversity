@@ -68,9 +68,9 @@ class UserAccountRepository @Inject()(metricsService: MetricsService) extends Mo
 
   def getPendingEnrolmentCount(orgName: String): Future[Int] = {
     val query = BSONDocument(
-      "deversityEnrolment.schoolName"      -> orgName,
-      "deversityEnrolment.role"            -> "teacher",
-      "deversityEnrolment.statusConfirmed" -> "pending"
+      "deversityDetails.schoolName"      -> orgName,
+      "deversityDetails.role"            -> "teacher",
+      "deversityDetails.statusConfirmed" -> "pending"
     )
 
     metricsService.runMetricsTimer(mongoTimer) {

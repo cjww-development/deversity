@@ -38,15 +38,15 @@ class UtilitiesControllerISpec extends IntegrationStubbing {
       }
     }
 
-    "return an Internal server error" when {
-      "the given org Id cannot be matched against a held account" in {
-        given
-          .user.orgUser.isAuthorised
-
-        whenReady(client(s"$appUrl/utilities/$testOrgId/pending-deversity-enrolments").get) { res =>
-          res.status mustBe INTERNAL_SERVER_ERROR
-        }
-      }
-    }
+//    "return an Internal server error" when {
+//      "the given org Id cannot be matched against a held account" in {
+//        given
+//          .user.orgUser.isAuthorised
+//
+//        whenReady(client(s"$appUrl/utilities/$testOrgId/pending-deversity-enrolments").get) { res =>
+//          res.status mustBe INTERNAL_SERVER_ERROR
+//        }
+//      }
+//    }
   }
 }

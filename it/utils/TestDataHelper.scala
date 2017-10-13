@@ -26,7 +26,7 @@ trait TestDataHelper {
   val CONTEXT   = "context"
   val DEVERSITY = "deversity"
 
-  val uuid = UUID.randomUUID()
+  final val uuid = UUID.randomUUID()
 
   private def generateTestSystemId(idType: String): String = s"$idType-$uuid"
 

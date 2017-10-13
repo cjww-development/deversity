@@ -52,6 +52,7 @@ class ValidationISpec extends IntegrationStubbing {
       "the teacher has been validated" in {
         given
           .user.individualUser.isSetup
+          .user.orgUser.isSetup
 
         whenReady(client(s"$appUrl/validate/teacher/$encryptedUserName/school/$encryptedSchoolName").head()) { res =>
           res.status mustBe OK

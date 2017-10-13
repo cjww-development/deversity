@@ -71,7 +71,7 @@ trait Fixtures extends TestDataHelper {
       lastName  = "testLastName",
       userName  = createTestUserName,
       email     = createTestEmail,
-      deversityEnrolment = accType
+      deversityDetails = Some(accType)
     )
   }
 

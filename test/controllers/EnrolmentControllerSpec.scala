@@ -118,7 +118,7 @@ class EnrolmentControllerSpec extends PlaySpec with MockitoSugar with GenericHel
         )
 
         when(mockEnrolmentService.getEnrolment(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(testStudentEnrolment(AccountEnums.pending)))
+          .thenReturn(Future.successful(Some(testStudentEnrolment(AccountEnums.pending))))
 
         val result = testController.getDeversityEnrolment(testUserId)
         AuthBuilder.getWithAuthorisedUser(result, request, mockAuthConnector, uuid, "user") {

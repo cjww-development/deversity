@@ -38,6 +38,8 @@ class EnrolmentControllerISpec extends IntegrationStubbing {
         }
 
         given.user.individualUser.getUser.\("enrolments").\("deversityId").as[String].contains("deversity") mustBe true
+
+
       }
     }
 
@@ -76,7 +78,7 @@ class EnrolmentControllerISpec extends IntegrationStubbing {
         whenReady(client(s"$appUrl/enrolment/$testUserId/deversity").get()) { res =>
           res.status mustBe OK
           DataSecurity.decryptIntoType[DeversityEnrolment](res.body) mustBe
-            JsSuccess(testUserAccount(AccountEnums.pending, AccountEnums.teacher).deversityEnrolment)
+            JsSuccess(testUserAccount(AccountEnums.pending, AccountEnums.teacher).deversityDetails.get)
         }
       }
     }

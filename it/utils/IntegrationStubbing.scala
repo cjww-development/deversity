@@ -57,7 +57,7 @@ trait IntegrationStubbing extends IntegrationTestUtils {
 
     def hasDeversityId: PreconditionBuilder = {
       await(userAccountRepository.collection flatMap {
-        _.update(BSONDocument(), BSONDocument("$set" -> BSONDocument("enrolments.deversityId" -> testDeversityId)))
+        _.update(BSONDocument("userName" -> "tUserName"), BSONDocument("$set" -> BSONDocument("enrolments.deversityId" -> testDeversityId)))
       })
       builder
     }
