@@ -72,7 +72,7 @@ libraryDependencies ++= testDeps
 
 resolvers += "cjww-dev" at "http://dl.bintray.com/cjww-development/releases"
 
-herokuAppName in compile := "cjww-deversity-backend"
+herokuAppName in Compile := "cjww-deversity-backend"
 
 bintrayOrganization                   := Some("cjww-development")
 bintrayReleaseOnPublish in ThisBuild  := true
