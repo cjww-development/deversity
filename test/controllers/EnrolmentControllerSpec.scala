@@ -16,23 +16,25 @@
 package controllers
 
 import com.cjwwdev.security.encryption.DataSecurity
-import common.{AlreadyExistsException, MissingAccountException}
+import com.cjwwdev.test.CJWWSpec
+import config.{AlreadyExistsException, MissingAccountException}
 import helpers._
 import models.DeversityEnrolment
 import models.formatters.MongoFormatting
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.mockito.Mockito.when
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.when
 import play.api.libs.json.JsSuccess
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class EnrolmentControllerSpec extends PlaySpec with MockitoSugar with GenericHelpers with ComponentMocks with Fixtures {
+class EnrolmentControllerSpec extends CJWWSpec with ComponentMocks with Fixtures {
 
-  val testController = new EnrolmentController(mockAuthConnector, mockConfig, mockEnrolmentService)
+  val testController = new EnrolmentController {
+    override val enrolmentService    = mockEnrolmentService
+    override val authConnector       = mockAuthConnector
+  }
 
   val testUserId = generateTestSystemId(USER)
   val testDevId  = generateTestSystemId(DEVERSITY)

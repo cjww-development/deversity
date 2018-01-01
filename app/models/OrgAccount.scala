@@ -20,6 +20,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 case class OrgAccount(orgId: String,
+                      deversityId: String,
                       orgName: String,
                       initials: String,
                       orgUserName: String,
@@ -29,6 +30,7 @@ case class OrgAccount(orgId: String,
 object OrgAccount {
   implicit def format(implicit formatters: BaseFormatting): OFormat[OrgAccount] = (
     (__ \ "orgId").format[String] and
+    (__ \ "deversityId").format[String] and
     (__ \ "orgName").format[String](formatters.orgNameReads) and
     (__ \ "initials").format[String](formatters.initialsReads) and
     (__ \ "orgUserName").format[String](formatters.orgUserNameReads) and

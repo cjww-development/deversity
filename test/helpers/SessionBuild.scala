@@ -22,7 +22,7 @@ import play.api.test.Helpers._
 trait SessionBuild {
   def buildRequest(appId: String): FakeRequest[_] = {
     FakeRequest().withHeaders(
-      "appId" -> appId,
+      "appId"      -> appId,
       CONTENT_TYPE -> TEXT
     )
   }

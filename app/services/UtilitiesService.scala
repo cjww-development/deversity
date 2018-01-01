@@ -15,37 +15,41 @@
 // limitations under the License.
 package services
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
+import config.Logging
 import models.{OrgAccount, OrgDetails, TeacherDetails, UserAccount}
-import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import repositories.{OrgAccountRepository, UserAccountRepository}
-import services.selectors.OrgAccountSelectors.{orgIdSelector, orgUserNameSelector}
-import services.selectors.UserAccountSelectors.teacherSelector
+import services.selectors.OrgAccountSelectors.{orgDevIdSelector, orgIdSelector}
+import services.selectors.UserAccountSelectors.teacherDetailsSelector
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
+class UtilitiesServiceImpl @Inject()(val userAccountRepository: UserAccountRepository,
+                                     val orgAccountRepository: OrgAccountRepository) extends UtilitiesService
 
-@Singleton
-class UtilitiesService @Inject()(userAccountRepository: UserAccountRepository, orgAccountRepository: OrgAccountRepository) {
+trait UtilitiesService extends Logging {
+  val userAccountRepository: UserAccountRepository
+  val orgAccountRepository: OrgAccountRepository
+
   def getPendingEnrolmentCount(orgId: String): Future[JsValue] = {
     for {
       orgAcc <- orgAccountRepository.getSchool(orgIdSelector(orgId))
-      count  <- userAccountRepository.getPendingEnrolmentCount(orgAcc.orgUserName)
+      count  <- userAccountRepository.getPendingEnrolmentCount(orgAcc.deversityId)
     } yield {
-      Logger.info(s"[UtilitiesService] - [getPendingEnrolmentCount] - Got pending enrolment count for org id $orgId")
+      logger.info(s"[UtilitiesService] - [getPendingEnrolmentCount] - Got pending enrolment count for org id $orgId")
       Json.parse(s"""{"pendingCount" : $count}""")
     }
   }
 
   def getSchoolDetails(orgUserName: String): Future[OrgDetails] = {
-    orgAccountRepository.getSchool(orgUserNameSelector(orgUserName)) map accountToDetails
+    orgAccountRepository.getSchool(orgDevIdSelector(orgUserName)) map accountToDetails
   }
 
   def getTeacherDetails(userName: String, schoolName: String): Future[TeacherDetails] = {
-    userAccountRepository.getUserBySelector(teacherSelector(userName, schoolName)) map accountToTeacherDetails
+    userAccountRepository.getUserBySelector(teacherDetailsSelector(userName, schoolName)) map accountToTeacherDetails
   }
 
   private def accountToDetails(orgAccount: OrgAccount): OrgDetails = OrgDetails(

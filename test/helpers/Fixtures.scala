@@ -16,9 +16,16 @@
 package helpers
 
 import com.cjwwdev.auth.models.{AuthContext, User}
-import models.{DeversityEnrolment, OrgAccount, UserAccount}
+import models._
+import org.scalatest.mockito.MockitoSugar
+import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
+import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers
 
 trait Fixtures extends TestDataHelper {
+  this: MockitoSugar =>
+
+  val testOrgDevId = generateTestSystemId(DEVERSITY)
 
   val testOrgContext: AuthContext = AuthContext(
     contextId = generateTestSystemId(CONTEXT),
@@ -41,7 +48,7 @@ trait Fixtures extends TestDataHelper {
 
     DeversityEnrolment(
       statusConfirmed = stat,
-      schoolName      = "tSchoolName",
+      schoolName      = testOrgDevId,
       role            = "teacher",
       title           = Some("testTitle"),
       room            = Some("testRoom"),
@@ -54,7 +61,7 @@ trait Fixtures extends TestDataHelper {
 
     DeversityEnrolment(
       statusConfirmed = stat,
-      schoolName      = "tSchoolName",
+      schoolName      = testOrgDevId,
       role            = "student",
       title           = None,
       room            = None,
@@ -71,16 +78,24 @@ trait Fixtures extends TestDataHelper {
       lastName  = "testLastName",
       userName  = createTestUserName,
       email     = createTestEmail,
-      deversityDetails = Some(accType)
+      deversityDetails = Some(accType),
+      enrolments = None
     )
   }
 
   val testOrgAccount = OrgAccount(
     orgId       = generateTestSystemId(ORG),
+    deversityId = testOrgDevId,
     orgName     = "testSchoolName",
     initials    = "TSN",
     orgUserName = "tSchoolName",
     location    = "testLocation",
     orgEmail    = createTestEmail
+  )
+
+  val testOrgDetails = OrgDetails(
+    orgName  = testOrgAccount.orgName,
+    initials = testOrgAccount.initials,
+    location = testOrgAccount.location
   )
 }

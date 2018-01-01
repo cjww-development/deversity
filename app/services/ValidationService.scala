@@ -16,36 +16,43 @@
 
 package services
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
-import play.api.Logger
-import repositories.{OrgAccountRepository, UserAccountRepository}
+import config.{EnrolmentsNotFoundException, Logging}
+import models.OrgAccount
+import repositories.{OrgAccountRepository, RegistrationCodeRepository, UserAccountRepository}
+import services.selectors.OrgAccountSelectors.{orgDevIdSelector, orgIdSelector}
 import services.selectors.UserAccountSelectors.teacherSelector
-import services.selectors.OrgAccountSelectors.orgUserNameSelector
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-@Singleton
-class ValidationService @Inject()(userAccountRepository: UserAccountRepository, orgAccountRepository: OrgAccountRepository) {
+class ValidationServiceImpl @Inject()(val userAccountRepository: UserAccountRepository,
+                                      val orgAccountRepository: OrgAccountRepository,
+                                      val registrationCodeRepository: RegistrationCodeRepository) extends ValidationService
 
-  def validateSchool(schoolName: String): Future[Boolean] = {
-    orgAccountRepository.getSchool(orgUserNameSelector(schoolName)) map {
-      _ => true
-    } recover {
-      case _ =>
-        Logger.warn(s"[ValidationService] - [validateSchool] - There is no registered school by the name $schoolName")
-        false
-    }
+trait ValidationService extends Logging {
+  val userAccountRepository: UserAccountRepository
+  val orgAccountRepository: OrgAccountRepository
+  val registrationCodeRepository: RegistrationCodeRepository
+
+  def validateSchool(regCode: String): Future[String] = {
+    for {
+      orgId  <- registrationCodeRepository.lookupUserIdByRegCode(regCode)
+      school <- orgAccountRepository.getSchool(orgIdSelector(orgId))
+    } yield school.deversityId
   }
 
-  def validateTeacher(userName: String, schoolName: String): Future[Boolean] = {
-    userAccountRepository.getUserBySelector(teacherSelector(userName, schoolName)) map {
-      _ => true
-    } recover {
-      case _ =>
-        Logger.warn(s"[ValidationService] - [validateTeacher] - There is no confirmed or pending teacher at $schoolName by the given username")
-        false
-    }
+  def validateTeacher(regCode: String, schoolDevId: String): Future[String] = {
+    for {
+      teacherUserId <- registrationCodeRepository.lookupUserIdByRegCode(regCode)
+      orgAccount    <- orgAccountRepository.getSchool(orgDevIdSelector(schoolDevId))
+      teacher       <- userAccountRepository.getUserBySelector(teacherSelector(teacherUserId, orgAccount.deversityId))
+    } yield teacher.enrolments.fold(noTeacher(orgAccount))(_.\("deversityId").as[String])
+  }
+
+  private def noTeacher(orgAccount: OrgAccount) = {
+    logger.warn(s"[validateTeacher] - There is no confirmed or pending teacher at ${orgAccount.orgName} by the given username")
+    throw new EnrolmentsNotFoundException(s"There is no confirmed or pending teacher at ${orgAccount.orgName} by the given username")
   }
 }

@@ -25,15 +25,17 @@ trait TestDataHelper {
   val ORG       = "org-user"
   val CONTEXT   = "context"
   val DEVERSITY = "deversity"
+  val SESSION   = "session"
 
   final val uuid = UUID.randomUUID()
 
   private def generateTestSystemId(idType: String): String = s"$idType-$uuid"
 
-  val testContextId   = generateTestSystemId(CONTEXT)
-  val testOrgId       = generateTestSystemId(ORG)
-  val testUserId      = generateTestSystemId(USER)
-  val testDeversityId = generateTestSystemId(DEVERSITY)
+  final val testContextId   = generateTestSystemId(CONTEXT)
+  final val testOrgId       = generateTestSystemId(ORG)
+  final val testUserId      = generateTestSystemId(USER)
+  final val testDeversityId = generateTestSystemId(DEVERSITY)
+  final val testCookieId    = generateTestSystemId(SESSION)
 
   val createTestUserName: String = nextString(10)
 

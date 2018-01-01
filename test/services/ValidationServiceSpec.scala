@@ -15,48 +15,66 @@
 // limitations under the License.
 package services
 
-import common.MissingAccountException
-import helpers.{AccountEnums, ComponentMocks, Fixtures, GenericHelpers}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.mockito.Mockito.when
+import com.cjwwdev.test.CJWWSpec
+import config.{MissingAccountException, RegistrationCodeNotFoundException}
+import helpers.{AccountEnums, ComponentMocks, Fixtures}
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.when
+import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class ValidationServiceSpec extends PlaySpec with MockitoSugar with GenericHelpers with ComponentMocks with Fixtures {
+class ValidationServiceSpec extends CJWWSpec with MockitoSugar with ComponentMocks with Fixtures {
 
-  val testService = new ValidationService(mockUserAccountRepo, mockOrgAccountRepo)
+  val testService = new ValidationService {
+    override val userAccountRepository      = mockUserAccountRepo
+    override val orgAccountRepository       = mockOrgAccountRepo
+    override val registrationCodeRepository = mockRegCodeRepository
+  }
 
   "validateSchool" should {
     "return true" when {
       "a school has been successfully validated" in {
+        val testDevId = generateTestSystemId(ORG)
+
+        when(mockRegCodeRepository.lookupUserIdByRegCode(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(testDevId))
+
         when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
           .thenReturn(Future.successful(testOrgAccount))
 
         val result = await(testService.validateSchool("tSchoolName"))
-        result mustBe true
+        result mustBe testOrgAccount.deversityId
       }
     }
 
     "return false" when {
       "a school has not been validated" in {
-        when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
-          .thenReturn(Future.failed(new MissingAccountException("")))
+        when(mockRegCodeRepository.lookupUserIdByRegCode(ArgumentMatchers.any()))
+          .thenReturn(Future.failed(new RegistrationCodeNotFoundException("")))
 
-        val result = await(testService.validateSchool("tSchoolName"))
-        result mustBe false
+        intercept[RegistrationCodeNotFoundException](await(testService.validateSchool("tSchoolName")))
       }
     }
   }
 
-  "validateTeacher" should {
+  "validateTeacher" ignore {
     "return true" when {
       "a teacher has been successfully validated" in {
-        when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(testUserAccount(AccountEnums.pending, AccountEnums.teacher)))
+        val testUserId     = generateTestSystemId(USER)
+        val testTeacherAcc = testUserAccount(AccountEnums.pending, AccountEnums.teacher)
+        val testRegCode    = "testRegCode"
 
-        val result = await(testService.validateTeacher(createTestUserName, "tSchoolName"))
+        when(mockRegCodeRepository.lookupUserIdByRegCode(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(testOrgAccount.deversityId))
+
+        when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(testOrgAccount))
+
+        when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any()))
+          .thenReturn(Future.successful(testTeacherAcc))
+
+        val result = await(testService.validateTeacher(testRegCode, testOrgDevId))
         result mustBe true
       }
     }
@@ -66,7 +84,7 @@ class ValidationServiceSpec extends PlaySpec with MockitoSugar with GenericHelpe
         when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any()))
           .thenReturn(Future.failed(new MissingAccountException("")))
 
-        val result = await(testService.validateTeacher(createTestUserName, "tSchoolName"))
+        val result = await(testService.validateTeacher(createTestUserName, testOrgDevId))
         result mustBe false
       }
     }

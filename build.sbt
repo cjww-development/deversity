@@ -14,21 +14,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import com.heroku.sbt.HerokuPlugin.autoImport.herokuAppName
 import com.typesafe.config.ConfigFactory
+import sbt.Keys.scalaVersion
 import scoverage.ScoverageKeys
-import scala.util.{Try, Success, Failure}
+
+import scala.util.{Failure, Success, Try}
+
+val appName = "deversity"
 
 val btVersion: String = Try(ConfigFactory.load.getString("version")) match {
   case Success(ver) => ver
   case Failure(_)   => "0.1.0"
 }
-
-name         := """deversity"""
-version      := btVersion
-scalaVersion := "2.11.11"
-organization := "com.cjww-dev.backends"
-
-lazy val playSettings: Seq[Setting[_]] = Seq.empty
 
 lazy val scoverageSettings = Seq(
   ScoverageKeys.coverageExcludedPackages  := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;config.*;.*(AuthService|BuildInfo|Routes).*",
@@ -37,44 +35,28 @@ lazy val scoverageSettings = Seq(
   ScoverageKeys.coverageHighlighting      := true
 )
 
-lazy val root = (project in file("."))
+lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala)
-  .settings(playSettings ++ scoverageSettings : _*)
+  .settings(scoverageSettings)
   .configs(IntegrationTest)
+  .settings(PlayKeys.playDefaultPort := 9973)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
-    Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest <<= (baseDirectory in IntegrationTest)(base => Seq(base / "it")),
-    parallelExecution in IntegrationTest := false)
-
-PlayKeys.devSettings := Seq("play.server.http.port" -> "9973")
-
-val cjwwDeps: Seq[ModuleID] = Seq(
-  "com.cjww-dev.libs" % "data-security_2.11"         % "2.8.0",
-  "com.cjww-dev.libs" % "reactive-mongo_2.11"        % "3.5.0",
-  "com.cjww-dev.libs" % "backend-auth_2.11"          % "2.10.0",
-  "com.cjww-dev.libs" % "application-utilities_2.11" % "2.3.0",
-  "com.cjww-dev.libs" % "metrics-reporter_2.11"      % "0.5.0"
-)
-
-val codeDeps: Seq[ModuleID] = Seq(
-  "com.kenshoo" % "metrics-play_2.10" % "2.4.0_0.4.0",
-  filters
-)
-
-val testDeps: Seq[ModuleID] = Seq(
-  "com.cjww-dev.libs" % "testing-framework_2.11" % "0.1.0"
-)
-
-libraryDependencies ++= cjwwDeps
-libraryDependencies ++= codeDeps
-libraryDependencies ++= testDeps
-
-resolvers += "cjww-dev" at "http://dl.bintray.com/cjww-development/releases"
-
-herokuAppName in Compile := "cjww-deversity-backend"
-
-bintrayOrganization                   := Some("cjww-development")
-bintrayReleaseOnPublish in ThisBuild  := true
-bintrayRepository                     := "releases"
-bintrayOmitLicense                    := true
+    version                                       :=  btVersion,
+    scalaVersion                                  :=  "2.11.12",
+    organization                                  :=  "com.cjww-dev.backends",
+    resolvers                                     ++= Seq(
+      "cjww-dev" at "http://dl.bintray.com/cjww-development/releases",
+      "breadfan" at "http://dl.bintray.com/breadfan/maven"
+    ),
+    herokuAppName in Compile                      :=  "cjww-deversity-backend",
+    bintrayOrganization                           :=  Some("cjww-development"),
+    bintrayReleaseOnPublish in ThisBuild          :=  true,
+    bintrayRepository                             :=  "releases",
+    bintrayOmitLicense                            :=  true,
+    libraryDependencies                           ++= AppDependencies(),
+    libraryDependencies                           +=  filters,
+    Keys.fork in IntegrationTest                  :=  false,
+    unmanagedSourceDirectories in IntegrationTest :=  (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
+    parallelExecution in IntegrationTest          :=  false
+  )

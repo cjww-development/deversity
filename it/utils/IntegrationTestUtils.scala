@@ -29,14 +29,14 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.test.Helpers._
-import repositories.{OrgAccountRepository, UserAccountRepository}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
-import services.MetricsService
+import repositories.{OrgAccountRepository, RegistrationCodeRepository, UserAccountRepository}
 
-import scala.concurrent.{Await, Awaitable}
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Awaitable}
+import scala.util.Random
 
 trait IntegrationTestUtils extends PlaySpec with Fixtures with GuiceOneServerPerSuite with ScalaFutures with IntegrationPatience
   with BeforeAndAfterEach with BeforeAndAfterAll {
@@ -47,7 +47,8 @@ trait IntegrationTestUtils extends PlaySpec with Fixtures with GuiceOneServerPer
   val appUrl       = s"http://localhost:$port/deversity"
 
   val additionalConfiguration = Map(
-    "microservice.external-services.auth-microservice.domain" -> s"http://$wireMockHost:$wireMockPort/auth"
+    "microservice.external-services.auth-microservice.domain" -> s"$wireMockUrl/auth",
+    "microservice.external-services.session-store.domain"     -> s"$wireMockUrl/session-store"
   )
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
@@ -82,25 +83,28 @@ trait IntegrationTestUtils extends PlaySpec with Fixtures with GuiceOneServerPer
 
   override def beforeEach(): Unit = resetWm()
 
-  override def beforeAll(): Unit = startWmServer()
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    startWmServer()
+  }
 
   override def afterEach(): Unit = afterITest()
 
   override def afterAll(): Unit = {
     afterITest()
     stopWmServer()
+    super.afterAll()
   }
 
-  lazy val metrics = app.injector.instanceOf(classOf[MetricsService])
-
-  lazy val userAccountRepository = new UserAccountRepository(metrics)
-  lazy val orgAccountRepository  = new OrgAccountRepository(metrics)
+  lazy val userAccountRepository = app.injector.instanceOf(classOf[UserAccountRepository])
+  lazy val orgAccountRepository  = app.injector.instanceOf(classOf[OrgAccountRepository])
+  lazy val regCodeRepository     = app.injector.instanceOf(classOf[RegistrationCodeRepository])
 
   lazy val ws = app.injector.instanceOf(classOf[WSClient])
 
   def client(url: String): WSRequest = ws.url(url).withHeaders(
     "appId"       -> "abda73f4-9d52-4bb8-b20d-b5fffd0cc130",
-    "contextId"   -> testContextId,
+    "cookieId"    -> testCookieId,
     CONTENT_TYPE  -> TEXT
   )
 
@@ -109,5 +113,18 @@ trait IntegrationTestUtils extends PlaySpec with Fixtures with GuiceOneServerPer
   def afterITest(): Unit = {
     userAccountRepository.collection.flatMap(_.remove(BSONDocument("userName" -> "tUserName")))
     orgAccountRepository.collection.flatMap(_.remove(BSONDocument("orgUserName" -> testOrgAccount.orgUserName)))
+    regCodeRepository.collection.flatMap(_.drop(failIfNotFound = false))
+  }
+
+  private val regCodeLength       = 6
+  private val regCodeAllowedChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
+
+  def generateRegistrationCode: String = {
+    val regCode = new StringBuilder
+    for(_ <- 1 to regCodeLength) {
+      val randomNum = Random.nextInt(regCodeAllowedChars.length)
+      regCode.append(regCodeAllowedChars(randomNum))
+    }
+    regCode.toString
   }
 }

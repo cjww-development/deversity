@@ -18,6 +18,7 @@ package utils
 import com.cjwwdev.auth.models.{AuthContext, User}
 import models.{DeversityEnrolment, OrgAccount, UserAccount}
 import org.joda.time.{DateTime, DateTimeZone}
+import play.api.libs.json.Json
 
 trait Fixtures extends TestDataHelper {
 
@@ -29,7 +30,7 @@ trait Fixtures extends TestDataHelper {
       id             = testOrgId,
       firstName      = None,
       lastName       = None,
-      orgName        = Some("testOrgName"),
+      orgName        = Some("tSchoolName"),
       credentialType = "organisation",
       role           = None
     ),
@@ -60,7 +61,7 @@ trait Fixtures extends TestDataHelper {
 
     DeversityEnrolment(
       statusConfirmed = stat,
-      schoolName      = "tSchoolName",
+      schoolName      = testOrgAccount.deversityId,
       role            = "teacher",
       title           = Some("testTitle"),
       room            = Some("testRoom"),
@@ -90,12 +91,14 @@ trait Fixtures extends TestDataHelper {
       lastName  = "testLastName",
       userName  = "tUserName",
       email     = "foo@bar.com",
-      deversityDetails = Some(accType)
+      deversityDetails = Some(accType),
+      enrolments = None
     )
   }
 
   val testOrgAccount = OrgAccount(
     orgId       = testOrgId,
+    deversityId = testDeversityId,
     orgName     = "tSchoolName",
     initials    = "TSN",
     orgUserName = "tSchoolName",

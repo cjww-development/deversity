@@ -16,30 +16,29 @@
 package repositories
 
 import java.util.UUID
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
+import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.reactivemongo.{MongoDatabase, MongoSuccessUpdate, MongoUpdatedResponse}
-import com.codahale.metrics.Timer
-import common.{AlreadyExistsException, MissingAccountException, UpdateFailedException}
-import models.{DeversityEnrolment, UserAccount}
+import config.{AlreadyExistsException, MissingAccountException, UpdateFailedException}
 import models.formatters.{BaseFormatting, MongoFormatting}
-import play.api.Logger
-import play.api.libs.json.{JsObject, Json}
+import models.{DeversityEnrolment, UserAccount}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
-import services.MetricsService
-import services.selectors.UserAccountSelectors.userIdSelector
+import services.selectors.UserAccountSelectors.{pendingEnrolmentCountSelector, userIdSelector}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-@Singleton
-class UserAccountRepository @Inject()(metricsService: MetricsService) extends MongoDatabase("user-accounts") {
+class UserAccountRepositoryImpl @Inject()(val configurationLoader: ConfigurationLoader) extends UserAccountRepository
+
+trait UserAccountRepository extends MongoDatabase {
 
   private implicit val mongoFormatting: BaseFormatting = MongoFormatting
 
-  private def mongoTimer: Timer.Context = metricsService.mongoResponseTimer.time()
+  //private def mongoTimer: Timer.Context = metricsService.mongoResponseTimer.time()
 
   private def generateDeversityId: String = s"deversity-${UUID.randomUUID()}"
 
@@ -52,31 +51,22 @@ class UserAccountRepository @Inject()(metricsService: MetricsService) extends Mo
     )
   )
 
-  private def getSelectorHead(selector: BSONDocument): (String, String) = (selector.elements.head._1, selector.elements.head._2.toString)
+  private def getSelectorHead(selector: BSONDocument): (String, String) = (selector.elements.head.name, selector.elements.head.value.toString)
 
   def getUserBySelector(selector: BSONDocument): Future[UserAccount] = {
-    val elements = getSelectorHead(selector)
-    collection flatMap {
-      _.find(selector).one[UserAccount] map {
-        case Some(acc) => acc
-        case _         =>
-          Logger.error(s"[UserAccountRepository] - [getUserBySelector] - Could not find user account based on ${elements._1} with value ${elements._2}")
-          throw new MissingAccountException(s"No user account found based on ${elements._1} with value ${elements._2}")
-      }
+    for {
+      col      <- collection
+      elements =  getSelectorHead(selector)
+      acc      <- col.find(selector).one[UserAccount]
+    } yield acc.getOrElse {
+      logger.error(s"[getUserBySelector] - Could not find user account based on ${elements._1} with value ${elements._2}")
+      throw new MissingAccountException(s"No user account found based on ${elements._1} with value ${elements._2}")
     }
   }
 
   def getPendingEnrolmentCount(orgName: String): Future[Int] = {
-    val query = BSONDocument(
-      "deversityDetails.schoolName"      -> orgName,
-      "deversityDetails.role"            -> "teacher",
-      "deversityDetails.statusConfirmed" -> "pending"
-    )
-
-    metricsService.runMetricsTimer(mongoTimer) {
-      collection flatMap {
-        _.find(query).cursor[UserAccount]().collect[List]() map(_.size)
-      }
+    collection flatMap {
+      _.find(pendingEnrolmentCountSelector(orgName)).cursor[JsValue]().collect[List]() map(_.size)
     }
   }
 
@@ -86,17 +76,17 @@ class UserAccountRepository @Inject()(metricsService: MetricsService) extends Mo
     val enrolment     = BSONDocument("$set" -> BSONDocument("enrolments.deversityId" -> deversityId))
     for {
       col       <- collection
-      accExists <- col.find(userIdSelector(userId)).one[UserAccount] map(acc => acc.isDefined)
+      accExists <- col.find(userIdSelector(userId)).one[UserAccount] map(_.isDefined)
       idExists  <- if(accExists) {
-        col.find(findQuery).one[UserAccount] map(acc => acc.isDefined)
+        col.find(findQuery).one[UserAccount] map(_.isDefined)
       } else {
-        Logger.error(s"[UserAccountRepository] - [createDeversityId] - No user account found for user id $userId")
+        logger.error(s"[createDeversityId] - No user account found for user id $userId")
         throw new MissingAccountException(s"No user account found for user id $userId")
       }
       updated   <- if(!idExists) {
         col.update(userIdSelector(userId), enrolment) map(_ => deversityId)
       } else {
-        Logger.warn(s"[UserAccountRepository] - [createDeversityId] - Deversity id for user $userId already exists")
+        logger.warn(s"[createDeversityId] - Deversity id for user $userId already exists")
         throw new AlreadyExistsException(s"Deversity id for user $userId already exists")
       }
     } yield updated

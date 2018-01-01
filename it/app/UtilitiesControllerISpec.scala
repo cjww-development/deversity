@@ -16,6 +16,8 @@
 package app
 
 import com.cjwwdev.security.encryption.DataSecurity
+import com.typesafe.config.ConfigFactory
+import play.api.Logger
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import utils.IntegrationStubbing
 import play.api.test.Helpers._
@@ -25,7 +27,6 @@ class UtilitiesControllerISpec extends IntegrationStubbing {
   s"/utilities/$testOrgId/pending-deversity-enrolments" should {
     "return an Ok" when {
       "the count has been calculated" in {
-        
         given
           .user.orgUser.isSetup
           .user.individualUser.isSetup

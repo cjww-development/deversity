@@ -16,23 +16,26 @@
 package helpers
 
 import com.cjwwdev.auth.connectors.AuthConnector
-import com.cjwwdev.config.ConfigurationLoader
-import org.scalatest.mockito.MockitoSugar
-import repositories.{OrgAccountRepository, UserAccountRepository}
+import com.cjwwdev.config.ConfigurationLoaderImpl
+import com.cjwwdev.test.CJWWSpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import repositories.{OrgAccountRepository, RegistrationCodeRepository, UserAccountRepository}
 import services.{EnrolmentService, UtilitiesService, ValidationService}
 
-trait ComponentMocks {
-  this: MockitoSugar =>
+trait ComponentMocks extends GuiceOneAppPerSuite {
+  this: CJWWSpec =>
 
-  val mockAuthConnector = mock[AuthConnector]
-  val mockConfig        = mock[ConfigurationLoader]
+  val mockAuthConnector      = mock[AuthConnector]
 
-  val mockValidationService = mock[ValidationService]
-  val mockUtilitiesService  = mock[UtilitiesService]
-  val mockEnrolmentService  = mock[EnrolmentService]
+  val mockValidationService  = mock[ValidationService]
+  val mockUtilitiesService   = mock[UtilitiesService]
+  val mockEnrolmentService   = mock[EnrolmentService]
 
-  val mockUserAccountRepo = mock[UserAccountRepository]
-  val mockOrgAccountRepo  = mock[OrgAccountRepository]
+  val mockUserAccountRepo    = mock[UserAccountRepository]
+  val mockOrgAccountRepo     = mock[OrgAccountRepository]
+  val mockRegCodeRepository  = mock[RegistrationCodeRepository]
 
-  val AUTH_SERVICE_ID     = mockConfig.getApplicationId("auth-service")
+  val testConfiguration      = app.injector.instanceOf(classOf[ConfigurationLoaderImpl])
+
+  val AUTH_SERVICE_ID = testConfiguration.getApplicationId("auth-service")
 }

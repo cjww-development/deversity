@@ -38,8 +38,6 @@ class EnrolmentControllerISpec extends IntegrationStubbing {
         }
 
         given.user.individualUser.getUser.\("enrolments").\("deversityId").as[String].contains("deversity") mustBe true
-
-
       }
     }
 

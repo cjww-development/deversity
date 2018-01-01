@@ -15,30 +15,24 @@
 // limitations under the License.
 package repositories
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
+import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.reactivemongo.MongoDatabase
-import com.codahale.metrics.Timer
-import common.MissingAccountException
+import config.MissingAccountException
 import models.OrgAccount
-import models.formatters.{BaseFormatting, MongoFormatting}
-import play.api.Logger
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
-import services.MetricsService
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-@Singleton
-class OrgAccountRepository @Inject()(metricsService: MetricsService) extends MongoDatabase("org-accounts"){
+class OrgAccountRepositoryImpl @Inject()(val configurationLoader: ConfigurationLoader) extends OrgAccountRepository
 
-  private implicit val mongoFormatting: BaseFormatting = MongoFormatting
+trait OrgAccountRepository extends MongoDatabase {
 
-  private def mongoTimer: Timer.Context = metricsService.mongoResponseTimer.time()
-
-  private def getSelectorHead(selector: BSONDocument): (String, String) = (selector.elements.head._1, selector.elements.head._2.toString)
+  //private def mongoTimer: Timer.Context = metricsService.mongoResponseTimer.time()
 
   override def indexes: Seq[Index] = Seq(
     Index(
@@ -50,16 +44,14 @@ class OrgAccountRepository @Inject()(metricsService: MetricsService) extends Mon
   )
 
   def getSchool(selector: BSONDocument): Future[OrgAccount] = {
-    val elements = getSelectorHead(selector)
-    metricsService.runMetricsTimer(mongoTimer) {
-      collection flatMap {
-        _.find(selector).one[OrgAccount] map {
-          case Some(acc) => acc
-          case _         =>
-            Logger.error(s"[OrgAccountRepository] - [getSchool] - No org account found based on ${elements._1} with value ${elements._2}")
-            throw new MissingAccountException(s"No org account found based on ${elements._1} with value ${elements._2}")
-        }
-      }
+    for {
+      col      <- collection
+      elements =  getSelectorHead(selector)
+      acc      <- col.find(selector).one[OrgAccount]
+    } yield acc.getOrElse {
+      logger.error(s"[getSchool] - No org account found based on ${elements._1} with value ${elements._2}")
+      throw new MissingAccountException(s"No org account found based on ${elements._1} with value ${elements._2}")
     }
   }
 }
+

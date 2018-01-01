@@ -15,28 +15,29 @@
 // limitations under the License.
 package services
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.codahale.metrics.Timer
 import com.kenshoo.play.metrics.Metrics
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-// $COVERAGE-OFF$
-
-@Singleton
-class MetricsService @Inject()(metrics: Metrics) {
-  val mongoResponseTimer = metrics.defaultRegistry.timer("mongo-response-timer")
-
-  def runMetricsTimer[T](timer: Timer.Context)(f: => Future[T]): Future[T] = {
-    f map { data =>
-      timer.stop()
-      data
-    } recover {
-      case e =>
-        timer.stop()
-        throw e
-    }
-  }
-}
+//class MetricsServiceImpl @Inject()(val metrics: Metrics) extends MetricsService
+//
+//trait MetricsService {
+//  val metrics: Metrics
+//
+//  val mongoResponseTimer = metrics.defaultRegistry.timer("mongo-response-timer")
+//
+//  def runMetricsTimer[T](timer: Timer.Context)(f: => Future[T]): Future[T] = {
+//    f map { data =>
+//      timer.stop()
+//      data
+//    } recover {
+//      case e =>
+//        timer.stop()
+//        throw e
+//    }
+//  }
+//}

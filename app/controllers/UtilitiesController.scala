@@ -15,25 +15,24 @@
 // limitations under the License.
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.cjwwdev.auth.actions.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
 import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.security.encryption.DataSecurity
-import common.AlreadyExistsException
+import config.BackendController
 import play.api.Logger
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent}
 import services.UtilitiesService
-import utils.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-@Singleton
-class UtilitiesController @Inject()(utilitiesService: UtilitiesService,
-                                    val config: ConfigurationLoader,
-                                    val authConnector: AuthConnector) extends BackendController with Authorisation {
+class UtilitiesControllerImpl @Inject()(val utilitiesService: UtilitiesService,
+                                        val authConnector: AuthConnector) extends UtilitiesController
+
+trait UtilitiesController extends BackendController with Authorisation {
+  val utilitiesService: UtilitiesService
 
   def getPendingEnrolmentsCount(orgId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(ORG_USER, orgId) {
@@ -49,11 +48,11 @@ class UtilitiesController @Inject()(utilitiesService: UtilitiesService,
     }
   }
 
-  def getSchoolDetails(userId: String, orgUserName: String): Action[AnyContent] = Action.async { implicit request =>
+  def getSchoolDetails(userId: String, orgDevId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { _ =>
-        withEncryptedUrl(orgUserName) { oUN =>
-          utilitiesService.getSchoolDetails(oUN) map { details =>
+        withEncryptedUrl(orgDevId) { oDId =>
+          utilitiesService.getSchoolDetails(oDId) map { details =>
             Ok(DataSecurity.encryptType(details))
           } recover {
             case _ => NotFound
@@ -63,12 +62,12 @@ class UtilitiesController @Inject()(utilitiesService: UtilitiesService,
     }
   }
 
-  def getTeacherDetails(userId: String, tUserName: String, schoolName: String): Action[AnyContent] = Action.async { implicit request =>
+  def getTeacherDetails(userId: String, teacherDevId: String, schoolDevId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { context =>
-        withEncryptedUrl(tUserName) { tDecName =>
-          withEncryptedUrl(schoolName) { schoolDecName =>
-            utilitiesService.getTeacherDetails(tDecName, schoolDecName) map { teacherDetails =>
+        withEncryptedUrl(teacherDevId) { tDevId =>
+          withEncryptedUrl(schoolDevId) { sDevId =>
+            utilitiesService.getTeacherDetails(tDevId, sDevId) map { teacherDetails =>
               Ok(DataSecurity.encryptType(teacherDetails))
             } recover {
               case _ => NotFound

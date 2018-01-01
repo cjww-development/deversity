@@ -2,8 +2,8 @@
 # This file defines all application app.routes (Higher priority app.routes first)
 # ~~~~
 
-HEAD        /validate/school/:schoolName                                   controllers.ValidationController.validateSchool(schoolName)
-HEAD        /validate/teacher/:userName/school/:schoolName                 controllers.ValidationController.validateTeacher(userName, schoolName)
+GET         /validate/school/:regCode                                      controllers.ValidationController.validateSchool(regCode)
+GET         /validate/teacher/:regCode/school/:schoolDevId                 controllers.ValidationController.validateTeacher(regCode, schoolDevId)
 
 GET         /utilities/:orgId/pending-deversity-enrolments                 controllers.UtilitiesController.getPendingEnrolmentsCount(orgId)
 GET         /user/:userId/teacher/:userName/school/:schoolName/details     controllers.UtilitiesController.getTeacherDetails(userId, userName, schoolName)
@@ -13,4 +13,8 @@ GET         /enrolment/:userId/deversity                                   contr
 GET         /account/:orgId/school/:userId/deversity-info                  controllers.EnrolmentController.getDeversityEnrolmentForConfirmation(orgId, userId)
 PATCH       /enrolment/:userId/deversity                                   controllers.EnrolmentController.updateDeversityInformation(userId)
 
-GET         /user/:userId/school/:orgUserName/details                      controllers.UtilitiesController.getSchoolDetails(userId, orgUserName)
+GET         /user/:userId/school/:orgDevId/details                         controllers.UtilitiesController.getSchoolDetails(userId, orgDevId)
+
+HEAD        /user/:userId/generate-registration-code                       controllers.EnrolmentController.generateRegistrationCode(userId)
+GET         /user/:userId/fetch-registration-code                          controllers.EnrolmentController.getRegistrationCode(userId)
+GET         /user/:userId/lookup/:regCode/lookup-reg-code                  controllers.EnrolmentController.lookupRegistrationCode(userId, regCode)

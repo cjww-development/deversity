@@ -15,18 +15,27 @@
 // limitations under the License.
 package services
 
+import com.cjwwdev.reactivemongo.{MongoFailedUpdate, MongoSuccessUpdate}
 import com.cjwwdev.security.encryption.DataSecurity
-import helpers.{AccountEnums, ComponentMocks, Fixtures, GenericHelpers}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.mockito.Mockito.when
+import com.cjwwdev.test.CJWWSpec
+import helpers.{AccountEnums, ComponentMocks, Fixtures}
+import models.RegistrationCode
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.when
+import com.cjwwdev.test.mongo.FakeMongoResults
 
 import scala.concurrent.Future
 
-class EnrolmentServiceSpec extends PlaySpec with MockitoSugar with GenericHelpers with ComponentMocks with Fixtures {
+class EnrolmentServiceSpec extends CJWWSpec with ComponentMocks with Fixtures {
 
-  val testService = new EnrolmentService(mockUserAccountRepo)
+  val testService = new EnrolmentService {
+    override val userAccountRepository = mockUserAccountRepo
+    override val orgAccountRepository = mockOrgAccountRepo
+    override val registrationCodeRepository = mockRegCodeRepository
+  }
+
+  val testUserId = generateTestSystemId(USER)
 
   "createDeversityId" should {
     "return a deversity id" in {
@@ -52,4 +61,58 @@ class EnrolmentServiceSpec extends PlaySpec with MockitoSugar with GenericHelper
       result mustBe testAcc.deversityDetails
     }
   }
+
+  "updateDeversityEnrolment" should {
+    val testDeversityEnrolment = testTeacherEnrolment(AccountEnums.pending)
+
+    "return a MongoSuccessUpdate" in {
+      when(mockUserAccountRepo.updateDeversityEnrolment(ArgumentMatchers.any(), ArgumentMatchers.any()))
+        .thenReturn(Future.successful(MongoSuccessUpdate))
+
+      val result = await(testService.updateDeversityEnrolment(testUserId, testDeversityEnrolment))
+      result mustBe MongoSuccessUpdate
+    }
+
+    "return an MongoFailedUpdate" in {
+      when(mockUserAccountRepo.updateDeversityEnrolment(ArgumentMatchers.any(), ArgumentMatchers.any()))
+        .thenReturn(Future.successful(MongoFailedUpdate))
+
+      val result = await(testService.updateDeversityEnrolment(testUserId, testDeversityEnrolment))
+      result mustBe MongoFailedUpdate
+    }
+  }
+
+  "getRegistrationCode" should {
+    val testRegCode = RegistrationCode(testUserId, "testRegCode", DateTime.now)
+
+    "return a registration code" in {
+      when(mockRegCodeRepository.getRegistrationCode(ArgumentMatchers.any(), ArgumentMatchers.any()))
+        .thenReturn(Future.successful(testRegCode))
+
+      val result = await(testService.getRegistrationCode(testUserId))
+      result mustBe testRegCode
+    }
+  }
+
+//  "generateRegistrationCode" should {
+//    "return true" when {
+//      "the generation of the reg code was successful" in {
+//        when(mockRegCodeRepository.generateRegistrationCode(ArgumentMatchers.any(), ArgumentMatchers.any()))
+//          .thenReturn(Future.successful(fakeSuccessUpdateWR))
+//
+//        val result = await(testService.generateRegistrationCode(testUserId))
+//        assert(result)
+//      }
+//    }
+//
+//    "return false" when {
+//      "there was a problem generating a reg code" in {
+//        when(mockRegCodeRepository.generateRegistrationCode(ArgumentMatchers.any(), ArgumentMatchers.any()))
+//          .thenReturn(Future.successful(fakeFailedUpdateWR))
+//
+//        val result = await(testService.generateRegistrationCode(testUserId))
+//        assert(!result)
+//      }
+//    }
+//  }
 }

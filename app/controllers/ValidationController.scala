@@ -19,32 +19,38 @@ import javax.inject.{Inject, Singleton}
 
 import com.cjwwdev.auth.actions.BaseAuth
 import com.cjwwdev.config.ConfigurationLoader
+import com.cjwwdev.security.encryption.DataSecurity
+import config.BackendController
 import play.api.mvc.{Action, AnyContent}
 import services.ValidationService
-import utils.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-@Singleton
-class ValidationController @Inject()(val config: ConfigurationLoader,
-                                     validationService: ValidationService) extends BackendController with BaseAuth {
+class ValidationControllerImpl @Inject()(val validationService: ValidationService) extends ValidationController
 
-  def validateSchool(schoolName: String): Action[AnyContent] = Action.async { implicit request =>
+trait ValidationController extends BackendController with BaseAuth {
+  val validationService: ValidationService
+
+  def validateSchool(regCode: String): Action[AnyContent] = Action.async { implicit request =>
     openActionVerification {
-      withEncryptedUrl(schoolName) { decryptedSchoolName =>
-        validationService.validateSchool(decryptedSchoolName) map { found =>
-          if(found) Ok else NotFound
+      withEncryptedUrl(regCode) { decryptedRegCode =>
+        validationService.validateSchool(decryptedRegCode) map { schoolDevId =>
+          Ok(DataSecurity.encryptType[String](schoolDevId))
+        } recover {
+          case _ => NotFound
         }
       }
     }
   }
 
-  def validateTeacher(userName: String, schoolName: String): Action[AnyContent] = Action.async { implicit request =>
+  def validateTeacher(regCode: String, schoolDevId: String): Action[AnyContent] = Action.async { implicit request =>
     openActionVerification {
-      withEncryptedUrl(userName) { decryptedUserName =>
-        withEncryptedUrl(schoolName) { decryptedSchoolName =>
-          validationService.validateTeacher(decryptedUserName, decryptedSchoolName) map { found =>
-            if(found) Ok else NotFound
+      withEncryptedUrl(regCode) { decryptedRegCode =>
+        withEncryptedUrl(schoolDevId) { decryptedSchoolDevId =>
+          validationService.validateTeacher(decryptedRegCode, decryptedSchoolDevId) map { teacherDevId =>
+            Ok(DataSecurity.encryptType[String](teacherDevId))
+          } recover {
+            case _ => NotFound
           }
         }
       }

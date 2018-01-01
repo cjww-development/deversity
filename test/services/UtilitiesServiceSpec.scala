@@ -15,20 +15,22 @@
 // limitations under the License.
 package services
 
-import com.cjwwdev.security.encryption.DataSecurity
-import common.MissingAccountException
-import helpers.{ComponentMocks, Fixtures, GenericHelpers}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.mockito.Mockito.when
+import com.cjwwdev.test.CJWWSpec
+import config.MissingAccountException
+import helpers.{AccountEnums, ComponentMocks, Fixtures}
+import models.TeacherDetails
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.when
 import play.api.libs.json.Json
 
 import scala.concurrent.Future
 
-class UtilitiesServiceSpec extends PlaySpec with MockitoSugar with GenericHelpers with ComponentMocks with Fixtures {
+class UtilitiesServiceSpec extends CJWWSpec with ComponentMocks with Fixtures {
 
-  val testService = new UtilitiesService(mockUserAccountRepo, mockOrgAccountRepo)
+  val testService = new UtilitiesService {
+    override val userAccountRepository = mockUserAccountRepo
+    override val orgAccountRepository = mockOrgAccountRepo
+  }
 
   "getPendingEnrolmentCount" should {
     "return a JsValue" when {
@@ -51,6 +53,34 @@ class UtilitiesServiceSpec extends PlaySpec with MockitoSugar with GenericHelper
 
         intercept[MissingAccountException](await(testService.getPendingEnrolmentCount(generateTestSystemId(ORG))))
       }
+    }
+  }
+
+  "getSchoolDetails" should {
+    "return an org details" in {
+      when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
+        .thenReturn(Future.successful(testOrgAccount))
+
+      val result = await(testService.getSchoolDetails("testOrgName"))
+      result mustBe testOrgDetails
+    }
+  }
+
+  "getTeacherDetails" should {
+    "return a teacher details model" in {
+      val testAcc = testUserAccount(AccountEnums.confirmed, AccountEnums.teacher)
+
+      when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any()))
+        .thenReturn(Future.successful(testAcc))
+
+      val result = await(testService.getTeacherDetails("testUserName", "testSchoolName"))
+      result mustBe TeacherDetails(
+        userId   = testAcc.userId,
+        title    = testAcc.deversityDetails.get.title.get,
+        lastName = testAcc.lastName,
+        room     = testAcc.deversityDetails.get.room.get,
+        status   = testAcc.deversityDetails.get.statusConfirmed
+      )
     }
   }
 }

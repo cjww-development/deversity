@@ -16,19 +16,22 @@
 package controllers
 
 import com.cjwwdev.security.encryption.DataSecurity
-import helpers.{ComponentMocks, Fixtures, GenericHelpers}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.mockito.Mockito.when
+import com.cjwwdev.test.CJWWSpec
+import config.MissingAccountException
+import helpers.{ComponentMocks, Fixtures}
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.when
+import org.scalatest.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class ValidationControllerSpec extends PlaySpec with MockitoSugar with GenericHelpers with ComponentMocks with Fixtures {
+class ValidationControllerSpec extends CJWWSpec with MockitoSugar with ComponentMocks with Fixtures {
 
-  val testController = new ValidationController(mockConfig, mockValidationService)
+  val testController = new ValidationController {
+    override val validationService   = mockValidationService
+  }
 
   val encryptedSchoolName = DataSecurity.encryptString("tSchoolName")
   val encryptedUserName = DataSecurity.encryptString(createTestUserName)
@@ -37,9 +40,9 @@ class ValidationControllerSpec extends PlaySpec with MockitoSugar with GenericHe
     "return an ok" when {
       "the school has been successfully validated" in {
         when(mockValidationService.validateSchool(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(true))
+          .thenReturn(Future.successful("testOrgDevId"))
 
-        val request = FakeRequest().withHeaders("appID" -> mockConfig.getApplicationId("auth-service"))
+        val request = FakeRequest().withHeaders("appID" -> AUTH_SERVICE_ID)
 
         val result = testController.validateSchool(encryptedSchoolName)(request)
         status(result) mustBe OK
@@ -49,9 +52,9 @@ class ValidationControllerSpec extends PlaySpec with MockitoSugar with GenericHe
     "return a Not found" when {
       "the school has not been validated" in {
         when(mockValidationService.validateSchool(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(false))
+          .thenReturn(Future.failed(new MissingAccountException("")))
 
-        val request = FakeRequest().withHeaders("appID" -> mockConfig.getApplicationId("auth-service"))
+        val request = FakeRequest().withHeaders("appID" -> AUTH_SERVICE_ID)
 
         val result = testController.validateSchool(encryptedSchoolName)(request)
         status(result) mustBe NOT_FOUND
@@ -63,9 +66,9 @@ class ValidationControllerSpec extends PlaySpec with MockitoSugar with GenericHe
     "return an ok" when {
       "the teacher has been successfully validated" in {
         when(mockValidationService.validateTeacher(ArgumentMatchers.any(), ArgumentMatchers.any()))
-          .thenReturn(Future.successful(true))
+          .thenReturn(Future.successful("testDevId"))
 
-        val request = FakeRequest().withHeaders("appID" -> mockConfig.getApplicationId("auth-service"))
+        val request = FakeRequest().withHeaders("appID" -> AUTH_SERVICE_ID)
 
         val result = testController.validateTeacher(encryptedUserName, encryptedSchoolName)(request)
         status(result) mustBe OK
@@ -75,9 +78,9 @@ class ValidationControllerSpec extends PlaySpec with MockitoSugar with GenericHe
     "return a Not found" when {
       "the teacher has not been validated" in {
         when(mockValidationService.validateTeacher(ArgumentMatchers.any(), ArgumentMatchers.any()))
-          .thenReturn(Future.successful(false))
+          .thenReturn(Future.failed(new MissingAccountException("")))
 
-        val request = FakeRequest().withHeaders("appID" -> mockConfig.getApplicationId("auth-service"))
+        val request = FakeRequest().withHeaders("appID" -> AUTH_SERVICE_ID)
 
         val result = testController.validateTeacher(encryptedUserName, encryptedSchoolName)(request)
         status(result) mustBe NOT_FOUND

@@ -26,14 +26,10 @@ trait JsonValidation {
   def shouldHaveErrors[T](result: JsResult[T], expectedErrors: Map[JsPath, Seq[ValidationError]]): Unit = {
     result match {
       case JsSuccess(data, _) => fail(s"read should have failed and didn't - produced $data")
-      case JsError(errors) =>
-        for(error <- errors) {
-          error match {
-            case (path, valErrs) =>
-              expectedErrors.keySet must contain(path)
-              expectedErrors(path) mustBe valErrs
-          }
-        }
+      case JsError(errors) => for((path, valErrs) <- errors) {
+        expectedErrors.keySet must contain(path)
+        expectedErrors(path) mustBe valErrs
+      }
     }
   }
 }

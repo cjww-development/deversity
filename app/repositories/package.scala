@@ -14,13 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+import models.formatters.{BaseFormatting, MongoFormatting}
+import reactivemongo.bson.BSONDocument
 
-import com.cjwwdev.identifiers.IdentifierValidation
-import com.cjwwdev.request.RequestParsers
-import models.formatters.{APIFormatting, BaseFormatting}
-import play.api.mvc.Controller
+package object repositories {
+  implicit val mongoFormatting: BaseFormatting = MongoFormatting
 
-trait BackendController extends Controller with RequestParsers with IdentifierValidation {
-  implicit val formatter: BaseFormatting = APIFormatting
+  val getSelectorHead: BSONDocument => (String, String) = selector => (selector.elements.head.name, selector.elements.head.value.toString)
 }

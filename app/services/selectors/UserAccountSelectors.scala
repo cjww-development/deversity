@@ -18,9 +18,21 @@ package services.selectors
 import reactivemongo.bson.BSONDocument
 
 object UserAccountSelectors {
-  def userIdSelector(userId: String): BSONDocument = BSONDocument("userId" -> userId)
-  def teacherSelector(userName: String, schoolName: String): BSONDocument = BSONDocument(
-    "userName"                      -> userName,
-    "deversityDetails.schoolName" -> schoolName
+  val userIdSelector: String => BSONDocument = userId => BSONDocument("userId" -> userId)
+
+  val teacherSelector: (String, String) => BSONDocument = (userId, orgDevId) => BSONDocument(
+    "userId"                      -> userId,
+    "deversityDetails.schoolName" -> orgDevId
+  )
+
+  val teacherDetailsSelector: (String, String) => BSONDocument = (teacherDevId, orgDevId) => BSONDocument(
+    "enrolments.deversityId"      -> teacherDevId,
+    "deversityDetails.schoolName" -> orgDevId
+  )
+
+  val pendingEnrolmentCountSelector: String => BSONDocument = orgName => BSONDocument(
+    "deversityDetails.schoolName"      -> orgName,
+    "deversityDetails.role"            -> "teacher",
+    "deversityDetails.statusConfirmed" -> "pending"
   )
 }

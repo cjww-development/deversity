@@ -13,11 +13,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package helpers
+package models
 
-import scala.concurrent.{Await, Awaitable}
-import scala.concurrent.duration._
+import com.cjwwdev.json.TimeFormat
+import org.joda.time.DateTime
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
-trait GenericHelpers {
-  def await[T](future : Awaitable[T]) : T = Await.result(future, 5.seconds)
+case class RegistrationCode(identifier: String,
+                            code: String,
+                            createdAt: DateTime)
+
+object RegistrationCode extends TimeFormat {
+  implicit val format: OFormat[RegistrationCode] = (
+    (__ \ "identifier").format[String] and
+    (__ \ "code").format[String] and
+    (__ \ "createdAt").format(dateTimeRead)(dateTimeWrite)
+  )(RegistrationCode.apply, unlift(RegistrationCode.unapply))
 }

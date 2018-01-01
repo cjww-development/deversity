@@ -15,25 +15,26 @@
 // limitations under the License.
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.cjwwdev.auth.actions.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
 import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.reactivemongo.{MongoFailedUpdate, MongoSuccessUpdate}
 import com.cjwwdev.security.encryption.DataSecurity
-import common.{AlreadyExistsException, MissingAccountException}
+import config._
 import models.DeversityEnrolment
 import play.api.mvc.{Action, AnyContent}
 import services.EnrolmentService
-import utils.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-@Singleton
-class EnrolmentController @Inject()(val authConnector: AuthConnector,
-                                    val config: ConfigurationLoader,
-                                    enrolmentService: EnrolmentService) extends BackendController with Authorisation {
+class EnrolmentControllerImpl @Inject()(val authConnector: AuthConnector,
+                                        val enrolmentService: EnrolmentService) extends EnrolmentController
+
+trait EnrolmentController extends BackendController with Authorisation {
+  val enrolmentService: EnrolmentService
+
   def createDeversityId(userId: String): Action[String] = Action.async(parse.text) { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { context =>
@@ -83,6 +84,37 @@ class EnrolmentController @Inject()(val authConnector: AuthConnector,
             case MongoSuccessUpdate => Ok
             case MongoFailedUpdate  => InternalServerError
           }
+        }
+      }
+    }
+  }
+
+  def generateRegistrationCode(userIdentifier: String): Action[AnyContent] = Action.async { implicit request =>
+    authorised(userIdentifier) { context =>
+      enrolmentService.generateRegistrationCode(context.user.id) map { generated =>
+        if(generated) Ok else InternalServerError
+      }
+    }
+  }
+
+  def getRegistrationCode(userIdentifier: String): Action[AnyContent] = Action.async { implicit request =>
+    authorised(userIdentifier) { context =>
+      enrolmentService.getRegistrationCode(context.user.id) map { regCode =>
+        Ok(DataSecurity.encryptType(regCode))
+      } recover {
+        case _ => InternalServerError
+      }
+    }
+  }
+
+  def lookupRegistrationCode(userId: String, regCode: String): Action[AnyContent] = Action.async { implicit request =>
+    validateAs(USER, userId) {
+      authorised(userId) { context =>
+        enrolmentService.lookupRegistrationCode(regCode) map { id =>
+          Ok(DataSecurity.encryptString(id))
+        } recover {
+          case _: RegistrationCodeNotFoundException => NotFound
+          case _: RegistrationCodeExpiredException  => BadRequest
         }
       }
     }

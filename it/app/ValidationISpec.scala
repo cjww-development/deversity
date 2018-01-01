@@ -17,21 +17,26 @@
 package app
 
 import com.cjwwdev.security.encryption.DataSecurity
-import utils.IntegrationStubbing
+import utils.{AccountEnums, IntegrationStubbing}
 import play.api.test.Helpers._
 
 class ValidationISpec extends IntegrationStubbing {
 
-  val encryptedSchoolName = DataSecurity.encryptString(testOrgAccount.orgUserName)
-  val encryptedUserName = DataSecurity.encryptString("tUserName")
+  final val orgRegCode           = generateRegistrationCode
+  final val userRegCode          = generateRegistrationCode
 
-  s"/validate/school/:schoolName" should {
+  val encodedOrgRegCode    = DataSecurity.encryptString(orgRegCode)
+  val encodedUserRegCode   = DataSecurity.encryptString(userRegCode)
+  val encodedSchoolDevId   = DataSecurity.encryptString(testOrgAccount.deversityId)
+
+  s"/validate/school/:regCode" should {
     "return an OK" when {
       "the school has been validated" in {
         given
           .user.orgUser.isSetup
+          .user.orgUser.hasRegistrationCode(testOrgAccount.orgId, orgRegCode)
 
-        whenReady(client(s"$appUrl/validate/school/$encryptedSchoolName").head()) { res =>
+        whenReady(client(s"$appUrl/validate/school/$encodedOrgRegCode").get()) { res =>
           res.status mustBe OK
         }
       }
@@ -40,21 +45,23 @@ class ValidationISpec extends IntegrationStubbing {
     "return a Not found" when {
       "the school has not been validated" in {
 
-        whenReady(client(s"$appUrl/validate/school/$encryptedSchoolName").head()) { res =>
+        whenReady(client(s"$appUrl/validate/school/$encodedOrgRegCode").get()) { res =>
           res.status mustBe NOT_FOUND
         }
       }
     }
   }
 
-  "/validate/teacher/:userName/school/:schoolName" should {
+  "/validate/teacher/:regCode/school/:schooDevId" should {
     "return an OK" when {
       "the teacher has been validated" in {
         given
           .user.individualUser.isSetup
+          .user.individualUser.hasDeversityId
           .user.orgUser.isSetup
+          .user.individualUser.hasRegistrationCode(testUserAccount.userId, userRegCode)
 
-        whenReady(client(s"$appUrl/validate/teacher/$encryptedUserName/school/$encryptedSchoolName").head()) { res =>
+        whenReady(client(s"$appUrl/validate/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get()) { res =>
           res.status mustBe OK
         }
       }
@@ -62,7 +69,7 @@ class ValidationISpec extends IntegrationStubbing {
 
     "return a Not found" when {
       "the teacher has not been validated" in {
-        whenReady(client(s"$appUrl/validate/teacher/$encryptedUserName/school/$encryptedSchoolName").head()) { res =>
+        whenReady(client(s"$appUrl/validate/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get()) { res =>
           res.status mustBe NOT_FOUND
         }
       }

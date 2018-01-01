@@ -16,12 +16,11 @@
 package controllers
 
 import com.cjwwdev.auth.models.AuthContext
-import common.MissingAccountException
-import helpers.{ComponentMocks, Fixtures, GenericHelpers}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.mockito.Mockito.when
+import com.cjwwdev.test.CJWWSpec
+import config.MissingAccountException
+import helpers.{ComponentMocks, Fixtures}
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.when
 import play.api.libs.json.Json
 import play.api.mvc.{Request, Result}
 import play.api.test.FakeRequest
@@ -29,9 +28,12 @@ import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class UtilitiesControllerSpec extends PlaySpec with MockitoSugar with GenericHelpers with ComponentMocks with Fixtures  {
+class UtilitiesControllerSpec extends CJWWSpec with ComponentMocks with Fixtures  {
 
-  val testController = new UtilitiesController(mockUtilitiesService, mockConfig, mockAuthConnector) {
+  val testController = new UtilitiesController {
+    override val utilitiesService    = mockUtilitiesService
+    override val authConnector       = mockAuthConnector
+
     override protected def authorised(userId: String)(f: (AuthContext) => Future[Result])(implicit request: Request[_]) = {
       f(testOrgContext)
     }
@@ -43,7 +45,7 @@ class UtilitiesControllerSpec extends PlaySpec with MockitoSugar with GenericHel
         when(mockUtilitiesService.getPendingEnrolmentCount(ArgumentMatchers.any()))
           .thenReturn(Future.successful(Json.parse("""{"pendingCount" : 1}""")))
 
-        val request = FakeRequest().withHeaders("appID" -> mockConfig.getApplicationId("auth-service"))
+        val request = FakeRequest().withHeaders("appID" -> AUTH_SERVICE_ID)
 
         val result = testController.getPendingEnrolmentsCount(generateTestSystemId(ORG))(request)
         status(result) mustBe OK
@@ -55,7 +57,7 @@ class UtilitiesControllerSpec extends PlaySpec with MockitoSugar with GenericHel
         when(mockUtilitiesService.getPendingEnrolmentCount(ArgumentMatchers.any()))
           .thenReturn(Future.failed(new MissingAccountException("")))
 
-        val request = FakeRequest().withHeaders("appID" -> mockConfig.getApplicationId("auth-service"))
+        val request = FakeRequest().withHeaders("appID" -> AUTH_SERVICE_ID)
 
         val result = testController.getPendingEnrolmentsCount(generateTestSystemId(ORG))(request)
         status(result) mustBe INTERNAL_SERVER_ERROR

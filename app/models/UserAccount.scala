@@ -24,7 +24,8 @@ case class UserAccount(userId: String,
                        lastName: String,
                        userName: String,
                        email: String,
-                       deversityDetails: Option[DeversityEnrolment])
+                       deversityDetails: Option[DeversityEnrolment],
+                       enrolments: Option[JsObject])
 
 object UserAccount {
   implicit def format(implicit formatters: BaseFormatting): OFormat[UserAccount] = (
@@ -33,6 +34,7 @@ object UserAccount {
     (__ \ "lastName").format[String](formatters.lastNameReads) and
     (__ \ "userName").format[String](formatters.userNameReads) and
     (__ \ "email").format[String](formatters.emailReads) and
-    (__ \ "deversityDetails").formatNullable[DeversityEnrolment](DeversityEnrolment.format)
+    (__ \ "deversityDetails").formatNullable[DeversityEnrolment](DeversityEnrolment.format) and
+    (__ \ "enrolments").formatNullable[JsObject]
   )(UserAccount.apply, unlift(UserAccount.unapply))
 }

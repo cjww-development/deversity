@@ -19,7 +19,7 @@ import com.cjwwdev.auth.models.AuthContext
 import com.cjwwdev.security.encryption.DataSecurity
 import models.{OrgAccount, UserAccount}
 import models.formatters.MongoFormatting
-import play.api.libs.json.{JsValue, OFormat}
+import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.test.Helpers.OK
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
@@ -29,8 +29,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait IntegrationStubbing extends IntegrationTestUtils {
 
-  implicit val formatOrgAcc: OFormat[OrgAccount] = OrgAccount.format(MongoFormatting)
+  implicit val formatOrgAcc: OFormat[OrgAccount]   = OrgAccount.format(MongoFormatting)
   implicit val formatUserAcc: OFormat[UserAccount] = UserAccount.format(MongoFormatting)
+
+  val testUserAccount: UserAccount = testUserAccount(AccountEnums.pending, AccountEnums.teacher)
 
   class PreconditionBuilder {
     implicit val builder: PreconditionBuilder = this
@@ -49,9 +51,7 @@ trait IntegrationStubbing extends IntegrationTestUtils {
 
   case class IndividualUser()(implicit builder: PreconditionBuilder) {
     def isSetup: PreconditionBuilder = {
-      await(userAccountRepository.collection flatMap {
-        _.insert[UserAccount](testUserAccount(AccountEnums.pending, AccountEnums.teacher))
-      })
+      await(userAccountRepository.collection flatMap(_.insert[UserAccount](testUserAccount)))
       builder
     }
 
@@ -62,7 +62,13 @@ trait IntegrationStubbing extends IntegrationTestUtils {
       builder
     }
 
+    def hasRegistrationCode(userId: String, regCode: String): PreconditionBuilder = {
+      await(regCodeRepository.getRegistrationCode(userId, regCode))
+      builder
+    }
+
     def isAuthorised: PreconditionBuilder = {
+      wmGet(s"/session-store/session/$testCookieId/context", OK, DataSecurity.encryptType[JsValue](Json.parse(s"""{"contextId"  : "${DataSecurity.encryptString(testContextId)}"}""")))
       wmGet(s"/auth/get-context/$testContextId", OK, DataSecurity.encryptType[AuthContext](testUserContext))
       builder
     }
@@ -80,7 +86,13 @@ trait IntegrationStubbing extends IntegrationTestUtils {
       builder
     }
 
+    def hasRegistrationCode(userId: String, regCode: String): PreconditionBuilder = {
+      await(regCodeRepository.getRegistrationCode(userId, regCode))
+      builder
+    }
+
     def isAuthorised: PreconditionBuilder = {
+      wmGet(s"/session-store/session/$testCookieId/context", OK, DataSecurity.encryptType[JsValue](Json.parse(s"""{"contextId"  : "${DataSecurity.encryptString(testContextId)}"}""")))
       wmGet(s"/auth/get-context/$testContextId", OK, DataSecurity.encryptType[AuthContext](testOrgContext))
       builder
     }
