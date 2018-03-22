@@ -1,44 +1,43 @@
-// Copyright (C) 2016-2017 the original author or authors.
-// See the LICENCE.txt file distributed with this work for additional
-// information regarding copyright ownership.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package repositories
 
 import java.util.UUID
 import javax.inject.Inject
 
-import com.cjwwdev.config.ConfigurationLoader
-import com.cjwwdev.reactivemongo.{MongoDatabase, MongoSuccessUpdate, MongoUpdatedResponse}
-import config.{AlreadyExistsException, MissingAccountException, UpdateFailedException}
+import com.cjwwdev.logging.Logging
+import com.cjwwdev.mongo.DatabaseRepository
+import com.cjwwdev.mongo.connection.ConnectionSettings
+import com.cjwwdev.mongo.responses.{MongoSuccessUpdate, MongoUpdatedResponse}
+import common.{AlreadyExistsException, MissingAccountException, UpdateFailedException}
 import models.formatters.{BaseFormatting, MongoFormatting}
 import models.{DeversityEnrolment, UserAccount}
+import play.api.Configuration
 import play.api.libs.json.{JsObject, JsValue, Json}
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
-import services.selectors.UserAccountSelectors.{pendingEnrolmentCountSelector, userIdSelector}
+import selectors.UserAccountSelectors._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserAccountRepositoryImpl @Inject()(val configurationLoader: ConfigurationLoader) extends UserAccountRepository
+class UserAccountRepositoryImpl @Inject()(val config: Configuration) extends UserAccountRepository with ConnectionSettings
 
-trait UserAccountRepository extends MongoDatabase {
-
-  private implicit val mongoFormatting: BaseFormatting = MongoFormatting
-
-  //private def mongoTimer: Timer.Context = metricsService.mongoResponseTimer.time()
+trait UserAccountRepository extends DatabaseRepository with Logging {
 
   private def generateDeversityId: String = s"deversity-${UUID.randomUUID()}"
 
@@ -51,16 +50,14 @@ trait UserAccountRepository extends MongoDatabase {
     )
   )
 
-  private def getSelectorHead(selector: BSONDocument): (String, String) = (selector.elements.head.name, selector.elements.head.value.toString)
-
   def getUserBySelector(selector: BSONDocument): Future[UserAccount] = {
     for {
-      col      <- collection
-      elements =  getSelectorHead(selector)
-      acc      <- col.find(selector).one[UserAccount]
+      col          <- collection
+      (key, value) =  getSelectorHead(selector)
+      acc          <- col.find(selector).one[UserAccount]
     } yield acc.getOrElse {
-      logger.error(s"[getUserBySelector] - Could not find user account based on ${elements._1} with value ${elements._2}")
-      throw new MissingAccountException(s"No user account found based on ${elements._1} with value ${elements._2}")
+      logger.error(s"[getUserBySelector] - Could not find user account based on $key with value $value")
+      throw new MissingAccountException(s"No user account found based on $key with value $value")
     }
   }
 

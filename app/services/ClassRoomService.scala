@@ -1,0 +1,77 @@
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package services
+
+import java.util.UUID
+import javax.inject.Inject
+
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse}
+import common.EnrolmentsNotFoundException
+import models.ClassRoom
+import repositories.{ClassRoomRepository, UserAccountRepository}
+import selectors.UserAccountSelectors.userIdSelector
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+class ClassRoomServiceImpl @Inject()(val classRoomRepository: ClassRoomRepository,
+                                     val userAccountRepository: UserAccountRepository) extends ClassRoomService
+
+trait ClassRoomService {
+  val classRoomRepository: ClassRoomRepository
+  val userAccountRepository: UserAccountRepository
+
+  private def generateClassRoom(className: String, teacher: String, school: String): ClassRoom = ClassRoom(
+    classId      = s"class-${UUID.randomUUID()}",
+    schooldevId  = school,
+    teacherDevId = teacher,
+    name         = className
+  )
+
+  def createClassRoom(className: String, userId: String): Future[MongoCreateResponse] = {
+    for {
+      acc        <- userAccountRepository.getUserBySelector(userIdSelector(userId))
+      enrs       =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No enrolments for user ${acc.userId}"))
+      devDetails =  acc.deversityDetails.getOrElse(throw new EnrolmentsNotFoundException(s"No deversity details for user ${acc.userId}"))
+      classRoom  =  generateClassRoom(className, enrs.get[String]("deversityId"), devDetails.schoolName)
+      resp       <- classRoomRepository.createNewClassRoom(classRoom)
+    } yield resp
+  }
+
+  def getClassesForTeachers(userId: String): Future[List[ClassRoom]] = {
+    for {
+      acc  <- userAccountRepository.getUserBySelector(userIdSelector(userId))
+      enrs =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No deversity details for user ${acc.userId}"))
+      list <- classRoomRepository.getClassesForTeacher(enrs.get[String]("deversityId"))
+    } yield list
+  }
+
+  def getClassroom(userId: String, classId: String): Future[Option[ClassRoom]] = {
+    for {
+      acc  <- userAccountRepository.getUserBySelector(userIdSelector(userId))
+      enrs =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No deversity details for user ${acc.userId}"))
+      room <- classRoomRepository.getClassroom(classId, enrs.get[String]("deversityId"))
+    } yield room
+  }
+
+  def deleteClassRoom(userId: String, classId: String): Future[MongoDeleteResponse] = {
+    for {
+      acc  <- userAccountRepository.getUserBySelector(userIdSelector(userId))
+      enrs =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No deversity details for user ${acc.userId}"))
+      resp <- classRoomRepository.deleteClassRoom(classId, enrs.get[String]("deversityId"))
+    } yield resp
+  }
+}

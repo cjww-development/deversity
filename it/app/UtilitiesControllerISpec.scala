@@ -1,28 +1,26 @@
-// Copyright (C) 2016-2017 the original author or authors.
-// See the LICENCE.txt file distributed with this work for additional
-// information regarding copyright ownership.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package app
 
 import com.cjwwdev.security.encryption.DataSecurity
-import com.typesafe.config.ConfigFactory
-import play.api.Logger
 import play.api.libs.json.{JsSuccess, JsValue, Json}
-import utils.IntegrationStubbing
 import play.api.test.Helpers._
+import utils.{IntegrationSpec, IntegrationStubbing}
 
-class UtilitiesControllerISpec extends IntegrationStubbing {
+class UtilitiesControllerISpec extends IntegrationSpec with IntegrationStubbing {
 
   s"/utilities/$testOrgId/pending-deversity-enrolments" should {
     "return an Ok" when {
@@ -32,22 +30,69 @@ class UtilitiesControllerISpec extends IntegrationStubbing {
           .user.individualUser.isSetup
           .user.orgUser.isAuthorised
 
-        whenReady(client(s"$appUrl/utilities/$testOrgId/pending-deversity-enrolments").get) { res =>
-          res.status mustBe OK
-          DataSecurity.decryptIntoType[JsValue](res.body) mustBe JsSuccess(Json.parse("""{"pendingCount" : 1}"""))
-        }
+        val result = await(client(s"$testAppUrl/utilities/$testOrgId/pending-deversity-enrolments").get)
+        result.status mustBe OK
+        DataSecurity.decryptString(result.body).toInt mustBe 1
       }
     }
 
-//    "return an Internal server error" when {
-//      "the given org Id cannot be matched against a held account" in {
-//        given
-//          .user.orgUser.isAuthorised
-//
-//        whenReady(client(s"$appUrl/utilities/$testOrgId/pending-deversity-enrolments").get) { res =>
-//          res.status mustBe INTERNAL_SERVER_ERROR
-//        }
-//      }
-//    }
+    "return an Internal server error" when {
+      "the given org Id cannot be matched against a held account" in {
+        given
+          .user.orgUser.isAuthorised
+
+        val result = await(client(s"$testAppUrl/utilities/$testOrgId/pending-deversity-enrolments").get)
+        result.status mustBe INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
+  s"/user/$testUserId/school/$testDeversityId/details" should {
+    "return an Ok" when {
+      "school details have been found" in {
+        given
+          .user.individualUser.isSetup
+          .user.orgUser.isSetup
+          .user.individualUser.isAuthorised
+
+        val result = await(client(s"$testAppUrl/user/$testUserId/school/${testDeversityId.encrypt}/details").get)
+        result.status mustBe OK
+      }
+    }
+
+    "return a not found" when {
+      "no school details have been found" in {
+        given
+          .user.individualUser.isAuthorised
+
+        val result = await(client(s"$testAppUrl/user/$testUserId/school/${testDeversityId.encrypt}/details").get)
+        result.status mustBe NOT_FOUND
+      }
+    }
+  }
+
+  s"/user/$testUserId/teacher/${testDeversityId.encrypt}/school/${testDeversityId.encrypt}/details" should {
+    "return an Ok" when {
+      "teacher details have been found" in {
+        given
+          .user.orgUser.isSetup
+          .user.individualUser.isSetup
+          .user.individualUser.hasDeversityId
+          .user.individualUser.isAuthorised
+
+        val result = await(client(s"$testAppUrl/user/$testUserId/teacher/${testDeversityId.encrypt}/school/${testDeversityId.encrypt}/details").get)
+        result.status mustBe OK
+      }
+    }
+
+    "return a Not found" when {
+      "no teacher details have been found" in {
+        given
+          .user.individualUser.isAuthorised
+
+        val result = await(client(s"$testAppUrl/user/$testUserId/teacher/${testDeversityId.encrypt}/school/${testDeversityId.encrypt}/details").get)
+        result.status mustBe NOT_FOUND
+      }
+    }
   }
 }

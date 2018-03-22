@@ -1,66 +1,63 @@
-// Copyright (C) 2016-2017 the original author or authors.
-// See the LICENCE.txt file distributed with this work for additional
-// information regarding copyright ownership.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package utils
 
-import com.cjwwdev.auth.models.{AuthContext, User}
+import com.cjwwdev.auth.models.CurrentUser
 import models.{DeversityEnrolment, OrgAccount, UserAccount}
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.Json
 
-trait Fixtures extends TestDataHelper {
+trait Fixtures {
+  self: TestDataGenerator =>
 
-  val now = DateTime.now(DateTimeZone.UTC)
+  object AccountEnums extends Enumeration {
+    val basic     = Value
+    val teacher   = Value
+    val student   = Value
+  }
 
-  val testOrgContext: AuthContext = AuthContext(
-    contextId = testContextId,
-    user = User(
-      id             = testOrgId,
-      firstName      = None,
-      lastName       = None,
-      orgName        = Some("tSchoolName"),
-      credentialType = "organisation",
-      role           = None
-    ),
-    basicDetailsUri = "/test/uri",
-    enrolmentsUri   = "/test/uri",
-    settingsUri     = "/test/uri",
-    createdAt       = now
+  val testContextId   = generateTestSystemId(CONTEXT)
+  val testOrgId       = generateTestSystemId(ORG)
+  val testUserId      = generateTestSystemId(USER)
+  val testDeversityId = generateTestSystemId(DEVERSITY)
+
+  val testOrgCurrentUser = CurrentUser(
+    contextId = generateTestSystemId(CONTEXT),
+    id = generateTestSystemId(ORG),
+    orgDeversityId = Some(generateTestSystemId(DEVERSITY)),
+    credentialType = "organisation",
+    orgName = None,
+    role = None,
+    enrolments = None
   )
 
-  val testUserContext: AuthContext = AuthContext(
-    contextId = testContextId,
-    user = User(
-      id = testUserId,
-      firstName      = Some("testFirstName"),
-      lastName       = Some("testLastName"),
-      orgName        = None,
-      credentialType = "individual",
-      role           = None
-    ),
-    basicDetailsUri = "/test/uri",
-    enrolmentsUri   = "/test/uri",
-    settingsUri     = "/test/uri",
-    createdAt       = now
+  val testCurrentUser = CurrentUser(
+    contextId = generateTestSystemId(CONTEXT),
+    id = generateTestSystemId(USER),
+    orgDeversityId = Some(generateTestSystemId(DEVERSITY)),
+    credentialType = "individual",
+    orgName = None,
+    role = None,
+    enrolments = Some(Json.obj(
+      "deversityId" -> generateTestSystemId(DEVERSITY)
+    ))
   )
 
-  def testTeacherEnrolment(status: AccountEnums.Value): DeversityEnrolment = {
-    val stat = if(status == AccountEnums.confirmed) AccountEnums.confirmed.toString else AccountEnums.pending.toString
-
+  def testTeacherEnrolment: DeversityEnrolment = {
     DeversityEnrolment(
-      statusConfirmed = stat,
+      statusConfirmed = "pending",
       schoolName      = testOrgAccount.deversityId,
       role            = "teacher",
       title           = Some("testTitle"),
@@ -69,11 +66,9 @@ trait Fixtures extends TestDataHelper {
     )
   }
 
-  def testStudentEnrolment(status: AccountEnums.Value): DeversityEnrolment = {
-    val stat = if(status == AccountEnums.confirmed) AccountEnums.confirmed.toString else AccountEnums.pending.toString
-
+  def testStudentEnrolment: DeversityEnrolment = {
     DeversityEnrolment(
-      statusConfirmed = stat,
+      statusConfirmed = "pending",
       schoolName      = "tSchoolName",
       role            = "student",
       title           = None,
@@ -82,8 +77,8 @@ trait Fixtures extends TestDataHelper {
     )
   }
 
-  def testUserAccount(status: AccountEnums.Value, accountType: AccountEnums.Value): UserAccount = {
-    val accType = if(accountType == AccountEnums.teacher) testTeacherEnrolment(status) else testStudentEnrolment(status)
+  def testUserAccount(accountType: AccountEnums.Value): UserAccount = {
+    val accType = if(accountType == AccountEnums.teacher) testTeacherEnrolment else testStudentEnrolment
 
     UserAccount(
       userId    = testUserId,
@@ -96,7 +91,7 @@ trait Fixtures extends TestDataHelper {
     )
   }
 
-  val testOrgAccount = OrgAccount(
+  lazy val testOrgAccount = OrgAccount(
     orgId       = testOrgId,
     deversityId = testDeversityId,
     orgName     = "tSchoolName",
