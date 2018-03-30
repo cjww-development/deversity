@@ -23,7 +23,7 @@ object AppDependencies {
 
 private object CompileDependencies {
   private val reactiveMongoVersion = "6.1.0"
-  private val authVersion          = "3.0.0"
+  private val authVersion          = "3.2.0"
   private val appUtilsVersion      = "3.0.0"
   private val metricsVersion       = "0.7.0"
 

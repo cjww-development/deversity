@@ -41,7 +41,7 @@ trait IntegrationSpec
 
   override implicit def defaultAwaitTimeout: Timeout = 5.seconds
 
-  override val testContextId   = generateTestSystemId(CONTEXT)
+  override val testContextId   = s"""{"contextId" : "${generateTestSystemId(CONTEXT)}"}"""
   override val testOrgId       = generateTestSystemId(ORG)
   override val testUserId      = generateTestSystemId(USER)
   override val testDeversityId = generateTestSystemId(DEVERSITY)

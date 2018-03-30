@@ -34,23 +34,27 @@ trait Fixtures {
   val testDeversityId = generateTestSystemId(DEVERSITY)
 
   val testOrgCurrentUser = CurrentUser(
-    contextId = generateTestSystemId(CONTEXT),
-    id = generateTestSystemId(ORG),
-    orgDeversityId = Some(generateTestSystemId(DEVERSITY)),
-    credentialType = "organisation",
-    orgName = None,
-    role = None,
-    enrolments = None
+    contextId       = generateTestSystemId(CONTEXT),
+    id              = generateTestSystemId(ORG),
+    orgDeversityId  = Some(generateTestSystemId(DEVERSITY)),
+    credentialType  = "organisation",
+    orgName         = None,
+    firstName       = None,
+    lastName        = None,
+    role            = None,
+    enrolments      = None
   )
 
   val testCurrentUser = CurrentUser(
-    contextId = generateTestSystemId(CONTEXT),
-    id = generateTestSystemId(USER),
-    orgDeversityId = Some(generateTestSystemId(DEVERSITY)),
-    credentialType = "individual",
-    orgName = None,
-    role = None,
-    enrolments = Some(Json.obj(
+    contextId       = generateTestSystemId(CONTEXT),
+    id              = generateTestSystemId(USER),
+    orgDeversityId  = Some(generateTestSystemId(DEVERSITY)),
+    credentialType  = "individual",
+    orgName         = None,
+    firstName       = Some("testFirstName"),
+    lastName        = Some("testLastName"),
+    role            = None,
+    enrolments      = Some(Json.obj(
       "deversityId" -> generateTestSystemId(DEVERSITY)
     ))
   )
@@ -81,13 +85,13 @@ trait Fixtures {
     val accType = if(accountType == AccountEnums.teacher) testTeacherEnrolment else testStudentEnrolment
 
     UserAccount(
-      userId    = testUserId,
-      firstName = "testFirstName",
-      lastName  = "testLastName",
-      userName  = "tUserName",
-      email     = "foo@bar.com",
+      userId           = testUserId,
+      firstName        = "testFirstName",
+      lastName         = "testLastName",
+      userName         = "tUserName",
+      email            = "foo@bar.com",
       deversityDetails = Some(accType),
-      enrolments = None
+      enrolments       = None
     )
   }
 

@@ -73,7 +73,7 @@ trait IntegrationStubbing {
 
     def isAuthorised: PreconditionBuilder = {
       stubbedGet(s"/session-store/session/$testCookieId/context", OK, testContextId.encrypt)
-      stubbedGet(s"/auth/get-current-user/$testContextId", OK, DataSecurity.encryptType[CurrentUser](testCurrentUser))
+      stubbedGet(s"/auth/get-current-user/${generateTestSystemId(CONTEXT)}", OK, DataSecurity.encryptType[CurrentUser](testCurrentUser))
       builder
     }
 
@@ -97,7 +97,7 @@ trait IntegrationStubbing {
 
     def isAuthorised: PreconditionBuilder = {
       stubbedGet(s"/session-store/session/$testCookieId/context", OK, testContextId.encrypt)
-      stubbedGet(s"/auth/get-current-user/$testContextId", OK, DataSecurity.encryptType[CurrentUser](testOrgCurrentUser))
+      stubbedGet(s"/auth/get-current-user/${generateTestSystemId(CONTEXT)}", OK, DataSecurity.encryptType[CurrentUser](testOrgCurrentUser))
       builder
     }
   }

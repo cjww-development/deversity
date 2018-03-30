@@ -23,23 +23,27 @@ trait Fixtures extends TestDataGenerator {
   val testOrgDevId = generateTestSystemId(DEVERSITY)
 
   val testOrgCurrentUser = CurrentUser(
-    contextId = generateTestSystemId(CONTEXT),
-    id = generateTestSystemId(ORG),
-    orgDeversityId = Some(generateTestSystemId(DEVERSITY)),
-    credentialType = "organisation",
-    orgName = None,
-    role = None,
-    enrolments = None
+    contextId       = generateTestSystemId(CONTEXT),
+    id              = generateTestSystemId(ORG),
+    orgDeversityId  = Some(generateTestSystemId(DEVERSITY)),
+    credentialType  = "organisation",
+    orgName         = None,
+    firstName       = None,
+    lastName        = None,
+    role            = None,
+    enrolments      = None
   )
 
   val testCurrentUser = CurrentUser(
-    contextId = generateTestSystemId(CONTEXT),
-    id = generateTestSystemId(USER),
-    orgDeversityId = Some(generateTestSystemId(DEVERSITY)),
-    credentialType = "individual",
-    orgName = None,
-    role = None,
-    enrolments = Some(Json.obj(
+    contextId       = generateTestSystemId(CONTEXT),
+    id              = generateTestSystemId(USER),
+    orgDeversityId  = Some(generateTestSystemId(DEVERSITY)),
+    credentialType  = "individual",
+    orgName         = None,
+    firstName       = Some("testFirstName"),
+    lastName        = Some("testLastName"),
+    role            = None,
+    enrolments      = Some(Json.obj(
       "deversityId" -> generateTestSystemId(DEVERSITY)
     ))
   )
@@ -82,13 +86,13 @@ trait Fixtures extends TestDataGenerator {
     }
 
     UserAccount(
-      userId    = generateTestSystemId(USER),
-      firstName = "testFirstName",
-      lastName  = "testLastName",
-      userName  = createTestUserName,
-      email     = createTestEmail,
+      userId           = generateTestSystemId(USER),
+      firstName        = "testFirstName",
+      lastName         = "testLastName",
+      userName         = createTestUserName,
+      email            = createTestEmail,
       deversityDetails = accType,
-      enrolments = enrs
+      enrolments       = enrs
     )
   }
 
@@ -109,10 +113,10 @@ trait Fixtures extends TestDataGenerator {
   )
 
   val testClassRoom = ClassRoom(
-    generateTestSystemId("class"),
-    generateTestSystemId(DEVERSITY),
-    generateTestSystemId(DEVERSITY),
-    "testClass1"
+    classId       = generateTestSystemId("class"),
+    schooldevId   = generateTestSystemId(DEVERSITY),
+    teacherDevId  = generateTestSystemId(DEVERSITY),
+    name          = "testClass1"
   )
 
   val testClassList = List(
