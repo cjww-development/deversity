@@ -1,21 +1,21 @@
-// Copyright (C) 2016-2017 the original author or authors.
-// See the LICENCE.txt file distributed with this work for additional
-// information regarding copyright ownership.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package models
 
-import helpers.JsonValidation
+import com.cjwwdev.testing.common.JsonValidation
 import models.formatters.{APIFormatting, BaseFormatting, MongoFormatting}
 import org.scalatestplus.play.PlaySpec
 import play.api.data.validation.ValidationError
@@ -113,12 +113,11 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val result = Json.fromJson[DeversityEnrolment](testJson)
-        val expectedErrors = Map(
+
+        result.mustHaveErrors(Map(
           JsPath() \ "statusConfirmed" -> Seq(ValidationError("Invalid status")),
           JsPath() \ "role"            -> Seq(ValidationError("Invalid role"))
-        )
-
-        shouldHaveErrors(result, expectedErrors)
+        ))
       }
     }
 
@@ -138,11 +137,10 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val result = Json.fromJson[DeversityEnrolment](testJson)
-        val expectedErrors = Map(
-          JsPath()  -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
-        )
 
-        shouldHaveErrors(result, expectedErrors)
+        result.mustHaveErrors(Map(
+          JsPath()  -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
+        ))
       }
 
       "the role is teacher but room isn't defined" in {
@@ -160,11 +158,10 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val result = Json.fromJson[DeversityEnrolment](testJson)
-        val expectedErrors = Map(
-          JsPath()  -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
-        )
 
-        shouldHaveErrors(result, expectedErrors)
+        result.mustHaveErrors(Map(
+          JsPath()  -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
+        ))
       }
 
       "the role is teacher but title and room aren't defined" in {
@@ -181,11 +178,10 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val result = Json.fromJson[DeversityEnrolment](testJson)
-        val expectedErrors = Map(
-          JsPath()  -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
-        )
 
-        shouldHaveErrors(result, expectedErrors)
+        result.mustHaveErrors(Map(
+          JsPath() -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
+        ))
       }
 
       "the role is teacher but title and room aren't defined and teacher is defined" in {
@@ -203,11 +199,10 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val result = Json.fromJson[DeversityEnrolment](testJson)
-        val expectedErrors = Map(
-          JsPath()  -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
-        )
 
-        shouldHaveErrors(result, expectedErrors)
+        result.mustHaveErrors(Map(
+          JsPath() -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
+        ))
       }
 
 
@@ -225,11 +220,10 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val result = Json.fromJson[DeversityEnrolment](testJson)
-        val expectedErrors = Map(
-          JsPath()  -> Seq(ValidationError("Role was student but teacher wasn't defined"))
-        )
 
-        shouldHaveErrors(result, expectedErrors)
+        result.mustHaveErrors(Map(
+          JsPath()  -> Seq(ValidationError("Role was student but teacher wasn't defined"))
+        ))
       }
 
       "the role is student but teacher isn't defined and title and room are" in {
@@ -248,11 +242,10 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val result = Json.fromJson[DeversityEnrolment](testJson)
-        val expectedErrors = Map(
-          JsPath() -> Seq(ValidationError("Role was student but teacher wasn't defined"))
-        )
 
-        shouldHaveErrors(result, expectedErrors)
+        result.mustHaveErrors(Map(
+          JsPath() -> Seq(ValidationError("Role was student but teacher wasn't defined"))
+        ))
       }
     }
   }

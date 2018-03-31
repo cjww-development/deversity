@@ -21,18 +21,15 @@ object AppDependencies {
   def apply(): Seq[ModuleID] = CompileDependencies() ++ UnitTestDependencies() ++ IntegrationTestDependencies()
 }
 
-
 private object CompileDependencies {
-  private val dataSecurityVersion  = "2.11.0"
-  private val reactiveMongoVersion = "5.5.1"
-  private val backendAuthVersion   = "2.20.0"
-  private val appUtilsVersion      = "2.11.0"
+  private val reactiveMongoVersion = "6.1.0"
+  private val authVersion          = "3.2.0"
+  private val appUtilsVersion      = "3.0.0"
   private val metricsVersion       = "0.7.0"
 
   private val compileDependencies: Seq[ModuleID] = Seq(
-    "com.cjww-dev.libs" % "data-security_2.11"         % dataSecurityVersion,
     "com.cjww-dev.libs" % "reactive-mongo_2.11"        % reactiveMongoVersion,
-    "com.cjww-dev.libs" % "backend-auth_2.11"          % backendAuthVersion,
+    "com.cjww-dev.libs" % "authorisation_2.11"         % authVersion,
     "com.cjww-dev.libs" % "application-utilities_2.11" % appUtilsVersion,
     "com.cjww-dev.libs" % "metrics-reporter_2.11"      % metricsVersion
   )
@@ -41,6 +38,8 @@ private object CompileDependencies {
 }
 
 private trait TestDependencies {
+  val testFrameworkVersion = "2.1.0"
+
   val scope: Configuration
   val testDependencies: Seq[ModuleID]
 }
@@ -48,7 +47,7 @@ private trait TestDependencies {
 private object UnitTestDependencies extends TestDependencies {
   override val scope: Configuration = Test
   override val testDependencies: Seq[ModuleID] = Seq(
-    "com.cjww-dev.libs" % "testing-framework_2.11" % "0.1.0" % scope
+    "com.cjww-dev.libs" % "testing-framework_2.11" % testFrameworkVersion % scope
   )
 
   def apply(): Seq[ModuleID] = testDependencies
@@ -57,7 +56,7 @@ private object UnitTestDependencies extends TestDependencies {
 private object IntegrationTestDependencies extends TestDependencies {
   override val scope: Configuration = IntegrationTest
   override val testDependencies: Seq[ModuleID] = Seq(
-    "com.cjww-dev.libs" % "testing-framework_2.11" % "0.1.0" % scope
+    "com.cjww-dev.libs" % "testing-framework_2.11" % testFrameworkVersion % scope
   )
 
   def apply(): Seq[ModuleID] = testDependencies

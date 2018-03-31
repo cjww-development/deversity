@@ -1,111 +1,86 @@
-// Copyright (C) 2016-2017 the original author or authors.
-// See the LICENCE.txt file distributed with this work for additional
-// information regarding copyright ownership.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package controllers
 
 import com.cjwwdev.security.encryption.DataSecurity
-import com.cjwwdev.test.CJWWSpec
-import config.{AlreadyExistsException, MissingAccountException}
-import helpers._
-import models.DeversityEnrolment
+import common.{AlreadyExistsException, MissingAccountException, RegistrationCodeExpiredException, RegistrationCodeNotFoundException}
+import helpers.controllers.ControllerSpec
+import models.{DeversityEnrolment, RegistrationCode}
 import models.formatters.MongoFormatting
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.when
-import play.api.libs.json.JsSuccess
+import play.api.libs.json.{Format, JsSuccess, OWrites}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class EnrolmentControllerSpec extends CJWWSpec with ComponentMocks with Fixtures {
+class EnrolmentControllerSpec extends ControllerSpec {
 
   val testController = new EnrolmentController {
-    override val enrolmentService    = mockEnrolmentService
-    override val authConnector       = mockAuthConnector
+    override val enrolmentService = mockEnrolmentService
+    override val authConnector    = mockAuthConnector
   }
 
-  val testUserId = generateTestSystemId(USER)
-  val testDevId  = generateTestSystemId(DEVERSITY)
-
-  implicit val enrolmentFormatter = DeversityEnrolment.format(MongoFormatting)
+  implicit val enrolmentFormatter: Format[DeversityEnrolment] = DeversityEnrolment.format(MongoFormatting)
+  implicit val enrolmentWrites: OWrites[DeversityEnrolment] = DeversityEnrolment.writes
 
   "createDeversityId" should {
     "return an Ok" when {
       "a deversity id has been created for the user" in {
-        val request  = FakeRequest().withHeaders(
-          "appId" -> AUTH_SERVICE_ID,
-          CONTENT_TYPE -> TEXT
-        ).withBody("")
+        val request = standardRequest.withBody("")
 
-        when(mockEnrolmentService.createDeversityId(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(DataSecurity.encryptString(testDevId)))
+        mockCreateDeversityId(returned = Future.successful(DataSecurity.encryptString(testDeversityId)))
 
-        val result = testController.createDeversityId(testUserId)
-        AuthBuilder.postWithAuthorisedUser(result, request, mockAuthConnector, uuid, "user") {
-          result => status(result) mustBe OK
+        runActionWithAuth(testController.createDeversityId(testUserId), request, "individual") {
+          status(_) mustBe OK
         }
       }
     }
 
     "return a Conflict" when {
       "when a user exists but the user already has an deversity id" in {
-        val request  = FakeRequest().withHeaders(
-          "appId" -> AUTH_SERVICE_ID,
-          CONTENT_TYPE -> TEXT
-        ).withBody("")
+        val request = standardRequest.withBody("")
 
-        when(mockEnrolmentService.createDeversityId(ArgumentMatchers.any()))
-          .thenReturn(Future.failed(new AlreadyExistsException("")))
+        mockCreateDeversityId(returned = Future.failed(new AlreadyExistsException("")))
 
-        val result = testController.createDeversityId(testUserId)
-        AuthBuilder.postWithAuthorisedUser(result, request, mockAuthConnector, uuid, "user") {
-          result => status(result) mustBe CONFLICT
+        runActionWithAuth(testController.createDeversityId(testUserId), request, "individual") {
+          status(_) mustBe CONFLICT
         }
       }
     }
 
     "return a NotFound" when {
       "the user doesn't exist" in {
-        val request  = FakeRequest().withHeaders(
-          "appId" -> AUTH_SERVICE_ID,
-          CONTENT_TYPE -> TEXT
-        ).withBody("")
+        val request = standardRequest.withBody("")
 
-        when(mockEnrolmentService.createDeversityId(ArgumentMatchers.any()))
-          .thenReturn(Future.failed(new MissingAccountException("")))
+        mockCreateDeversityId(returned = Future.failed(new MissingAccountException("")))
 
-        val result = testController.createDeversityId(testUserId)
-        AuthBuilder.postWithAuthorisedUser(result, request, mockAuthConnector, uuid, "user") {
-          result => status(result) mustBe NOT_FOUND
+        runActionWithAuth(testController.createDeversityId(testUserId), request, "individual") {
+          status(_) mustBe NOT_FOUND
         }
       }
     }
 
     "return an InternalServerError" when {
       "there was some other problem" in {
-        val request  = FakeRequest().withHeaders(
-          "appId" -> AUTH_SERVICE_ID,
-          CONTENT_TYPE -> TEXT
-        ).withBody("")
+        val request = standardRequest.withBody("")
 
-        when(mockEnrolmentService.createDeversityId(ArgumentMatchers.any()))
-          .thenReturn(Future.failed(new IllegalStateException("")))
+        mockCreateDeversityId(returned = Future.failed(new IllegalStateException("")))
 
-        val result = testController.createDeversityId(testUserId)
-        AuthBuilder.postWithAuthorisedUser(result, request, mockAuthConnector, uuid, "user") {
-          result => status(result) mustBe INTERNAL_SERVER_ERROR
+        runActionWithAuth(testController.createDeversityId(testUserId), request, "individual") {
+          status(_) mustBe INTERNAL_SERVER_ERROR
         }
       }
     }
@@ -114,53 +89,135 @@ class EnrolmentControllerSpec extends CJWWSpec with ComponentMocks with Fixtures
   "getDeversityEnrolment" should {
     "return an Ok" when {
       "the users enrolment has been fetched" in {
-        val request  = FakeRequest().withHeaders(
-          "appId" -> AUTH_SERVICE_ID,
-          CONTENT_TYPE -> TEXT
-        )
+        mockGetDeversityEnrolment(returned = Future(Some(testStudentEnrolment)))
 
-        when(mockEnrolmentService.getEnrolment(ArgumentMatchers.any()))
-          .thenReturn(Future.successful(Some(testStudentEnrolment(AccountEnums.pending))))
-
-        val result = testController.getDeversityEnrolment(testUserId)
-        AuthBuilder.getWithAuthorisedUser(result, request, mockAuthConnector, uuid, "user") {
-          result =>
-            status(result) mustBe OK
-            DataSecurity.decryptIntoType[DeversityEnrolment](contentAsString(result)) mustBe JsSuccess(testStudentEnrolment(AccountEnums.pending))
+        runActionWithAuth(testController.getDeversityEnrolment(testUserId), standardRequest, "individual") { result =>
+          status(result) mustBe OK
+          DataSecurity.decryptIntoType[DeversityEnrolment](contentAsString(result)) mustBe JsSuccess(testStudentEnrolment)
         }
       }
     }
 
     "return a NotFound" when {
       "a user can't be found against the given id" in {
-        val request  = FakeRequest().withHeaders(
-          "appId" -> AUTH_SERVICE_ID,
-          CONTENT_TYPE -> TEXT
-        )
+        mockGetDeversityEnrolment(returned = Future.failed(new MissingAccountException("")))
 
-        when(mockEnrolmentService.getEnrolment(ArgumentMatchers.any()))
-          .thenReturn(Future.failed(new MissingAccountException("")))
-
-        val result = testController.getDeversityEnrolment(testUserId)
-        AuthBuilder.getWithAuthorisedUser(result, request, mockAuthConnector, uuid, "user") {
-          result => status(result) mustBe NOT_FOUND
+        runActionWithAuth(testController.getDeversityEnrolment(testUserId), standardRequest, "individual") {
+          status(_) mustBe NOT_FOUND
         }
       }
     }
 
     "return an InternalServerError" when {
       "there was some other problem" in {
-        val request  = FakeRequest().withHeaders(
-          "appId" -> AUTH_SERVICE_ID,
-          CONTENT_TYPE -> TEXT
-        )
+        mockGetDeversityEnrolment(returned = Future.failed(new IllegalStateException("")))
 
-        when(mockEnrolmentService.getEnrolment(ArgumentMatchers.any()))
-          .thenReturn(Future.failed(new IllegalStateException("")))
+        runActionWithAuth(testController.getDeversityEnrolment(testUserId), standardRequest, "individual") {
+          status(_) mustBe INTERNAL_SERVER_ERROR
+        }
+      }
+    }
+  }
 
-        val result = testController.getDeversityEnrolment(testUserId)
-        AuthBuilder.getWithAuthorisedUser(result, request, mockAuthConnector, uuid, "user") {
-          result => status(result) mustBe INTERNAL_SERVER_ERROR
+  "updateDeversityInformation" should {
+    "return an Ok" when {
+      "the users deversity information has been updated" in {
+        val request: FakeRequest[String] = standardRequest.withBody(testStudentEnrolment.encryptType)
+
+        mockUpdateDeversityEnrolment(success = true)
+
+        runActionWithAuth(testController.updateDeversityInformation(testUserId), request, "individual") {
+          status(_) mustBe OK
+        }
+      }
+    }
+
+    "return an InternalServerError" when {
+      "there was a problem updating the users deversity information" in {
+        val request: FakeRequest[String] = standardRequest.withBody(testStudentEnrolment.encryptType)
+
+        mockUpdateDeversityEnrolment(success = false)
+
+        runActionWithAuth(testController.updateDeversityInformation(testUserId), request, "individual") {
+          status(_) mustBe INTERNAL_SERVER_ERROR
+        }
+      }
+    }
+  }
+
+  "generateRegistrationCode" should {
+    "return an Ok" when {
+      "a registration code has been generated" in {
+        mockGenerateRegistrationCode(generated = true)
+
+        runActionWithAuth(testController.generateRegistrationCode(testUserId), standardRequest, "individual") {
+          status(_) mustBe OK
+        }
+      }
+    }
+
+    "return an InternalServerError" when {
+      "there was a problem generating a registration code" in {
+        mockGenerateRegistrationCode(generated = false)
+
+        runActionWithAuth(testController.generateRegistrationCode(testUserId), standardRequest, "individual") {
+          status(_) mustBe INTERNAL_SERVER_ERROR
+        }
+      }
+    }
+  }
+
+  "getRegistrationCode" should {
+    "return an OK" when {
+      "the registration code for the user has been found" in {
+        mockGetRegistrationCode(fetched = true)
+
+        runActionWithAuth(testController.getRegistrationCode(testUserId), standardRequest, "individual") { res =>
+          status(res)                                        mustBe OK
+          contentAsString(res).decryptType[RegistrationCode] mustBe testRegistrationCode
+        }
+      }
+    }
+
+    "return an InternalServerError" when {
+      "the registration code was not found" in {
+        mockGetRegistrationCode(fetched = false)
+
+        runActionWithAuth(testController.getRegistrationCode(testUserId), standardRequest, "individual") {
+          status(_) mustBe INTERNAL_SERVER_ERROR
+        }
+      }
+    }
+  }
+
+  "lookupRegistrationCode" should {
+    "return an Ok" when {
+      "a registration code has been looked up" in {
+        mockLookupRegistrationCode(regCode = Future(testUserId))
+
+        runActionWithAuth(testController.lookupRegistrationCode(testUserId, "testRegCode"), standardRequest, "individual") { res =>
+          status(res)                  mustBe OK
+          contentAsString(res).decrypt mustBe testUserId
+        }
+      }
+    }
+
+    "return a NotFound" when {
+      "a registration code has not been found" in {
+        mockLookupRegistrationCode(regCode = Future.failed(new RegistrationCodeNotFoundException("")))
+
+        runActionWithAuth(testController.lookupRegistrationCode(testUserId, "testRegCode"), standardRequest, "individual") {
+          status(_) mustBe NOT_FOUND
+        }
+      }
+    }
+
+    "return a BadRequest" when {
+      "the registration code has expired" in {
+        mockLookupRegistrationCode(regCode = Future.failed(new RegistrationCodeExpiredException("")))
+
+        runActionWithAuth(testController.lookupRegistrationCode(testUserId, "testRegCode"), standardRequest, "individual") {
+          status(_) mustBe BAD_REQUEST
         }
       }
     }

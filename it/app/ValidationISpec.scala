@@ -1,26 +1,26 @@
-// Copyright (C) 2016-2017 the original author or authors.
-// See the LICENCE.txt file distributed with this work for additional
-// information regarding copyright ownership.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2018 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package app
 
 import com.cjwwdev.security.encryption.DataSecurity
-import utils.{AccountEnums, IntegrationStubbing}
+import utils.{IntegrationSpec, IntegrationStubbing}
 import play.api.test.Helpers._
 
-class ValidationISpec extends IntegrationStubbing {
+class ValidationISpec extends IntegrationSpec with IntegrationStubbing {
 
   final val orgRegCode           = generateRegistrationCode
   final val userRegCode          = generateRegistrationCode
@@ -36,18 +36,15 @@ class ValidationISpec extends IntegrationStubbing {
           .user.orgUser.isSetup
           .user.orgUser.hasRegistrationCode(testOrgAccount.orgId, orgRegCode)
 
-        whenReady(client(s"$appUrl/validate/school/$encodedOrgRegCode").get()) { res =>
-          res.status mustBe OK
-        }
+        val result = await(client(s"$testAppUrl/validate/school/$encodedOrgRegCode").get())
+        result.status mustBe OK
       }
     }
 
     "return a Not found" when {
       "the school has not been validated" in {
-
-        whenReady(client(s"$appUrl/validate/school/$encodedOrgRegCode").get()) { res =>
-          res.status mustBe NOT_FOUND
-        }
+        val result = await(client(s"$testAppUrl/validate/school/$encodedOrgRegCode").get())
+        result.status mustBe NOT_FOUND
       }
     }
   }
@@ -59,19 +56,17 @@ class ValidationISpec extends IntegrationStubbing {
           .user.individualUser.isSetup
           .user.individualUser.hasDeversityId
           .user.orgUser.isSetup
-          .user.individualUser.hasRegistrationCode(testUserAccount.userId, userRegCode)
+          .user.individualUser.hasRegistrationCode(testUserAcc.userId, userRegCode)
 
-        whenReady(client(s"$appUrl/validate/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get()) { res =>
-          res.status mustBe OK
-        }
+        val result = await(client(s"$testAppUrl/validate/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get())
+        result.status mustBe OK
       }
     }
 
     "return a Not found" when {
       "the teacher has not been validated" in {
-        whenReady(client(s"$appUrl/validate/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get()) { res =>
-          res.status mustBe NOT_FOUND
-        }
+        val result = await(client(s"$testAppUrl/validate/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get())
+        result.status mustBe NOT_FOUND
       }
     }
   }
