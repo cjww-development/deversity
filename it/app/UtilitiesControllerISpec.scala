@@ -15,37 +15,10 @@
  */
 package app
 
-import com.cjwwdev.security.encryption.DataSecurity
-import play.api.libs.json.{JsSuccess, JsValue, Json}
-import play.api.test.Helpers._
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import utils.{IntegrationSpec, IntegrationStubbing}
 
 class UtilitiesControllerISpec extends IntegrationSpec with IntegrationStubbing {
-
-  s"/utilities/$testOrgId/pending-deversity-enrolments" should {
-    "return an Ok" when {
-      "the count has been calculated" in {
-        given
-          .user.orgUser.isSetup
-          .user.individualUser.isSetup
-          .user.orgUser.isAuthorised
-
-        val result = await(client(s"$testAppUrl/utilities/$testOrgId/pending-deversity-enrolments").get)
-        result.status mustBe OK
-        DataSecurity.decryptString(result.body).toInt mustBe 1
-      }
-    }
-
-    "return an Internal server error" when {
-      "the given org Id cannot be matched against a held account" in {
-        given
-          .user.orgUser.isAuthorised
-
-        val result = await(client(s"$testAppUrl/utilities/$testOrgId/pending-deversity-enrolments").get)
-        result.status mustBe INTERNAL_SERVER_ERROR
-      }
-    }
-  }
 
   s"/user/$testUserId/school/$testDeversityId/details" should {
     "return an Ok" when {

@@ -61,23 +61,21 @@ trait Fixtures {
 
   def testTeacherEnrolment: DeversityEnrolment = {
     DeversityEnrolment(
-      statusConfirmed = "pending",
-      schoolName      = testOrgAccount.deversityId,
-      role            = "teacher",
-      title           = Some("testTitle"),
-      room            = Some("testRoom"),
-      teacher         = None
+      schoolDevId = testOrgAccount.deversityId,
+      role        = "teacher",
+      title       = Some("testTitle"),
+      room        = Some("testRoom"),
+      teacher     = None
     )
   }
 
   def testStudentEnrolment: DeversityEnrolment = {
     DeversityEnrolment(
-      statusConfirmed = "pending",
-      schoolName      = "tSchoolName",
-      role            = "student",
-      title           = None,
-      room            = None,
-      teacher         = Some(createTestUserName)
+      schoolDevId = "tSchoolName",
+      role        = "student",
+      title       = None,
+      room        = None,
+      teacher     = Some(createTestUserName)
     )
   }
 

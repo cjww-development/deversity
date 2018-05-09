@@ -16,14 +16,13 @@
 package controllers
 
 import com.cjwwdev.auth.models.CurrentUser
-import common.MissingAccountException
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import helpers.controllers.ControllerSpec
+import models.formatters.MongoFormatting
 import models.{OrgDetails, TeacherDetails}
-import models.formatters.{APIFormatting, MongoFormatting}
 import play.api.mvc.{Request, Result}
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class UtilitiesControllerSpec extends ControllerSpec {
 
@@ -36,28 +35,6 @@ class UtilitiesControllerSpec extends ControllerSpec {
     }
   }
 
-  "getPendingEnrolmentsCount" should {
-    "return an Ok" when {
-      "the count has been calculated" in {
-        mockGetPendingEnrolments(returned = Future(1))
-
-        assertResult(testController.getPendingEnrolmentsCount(generateTestSystemId(ORG))(standardRequest)) {
-          status(_) mustBe OK
-        }
-      }
-    }
-
-    "return an Internal server error" when {
-      "no org account matching the given orgId was found" in {
-        mockGetPendingEnrolments(returned = Future.failed(new MissingAccountException("")))
-
-        assertResult(testController.getPendingEnrolmentsCount(generateTestSystemId(ORG))(standardRequest)) {
-          status(_) mustBe INTERNAL_SERVER_ERROR
-        }
-      }
-    }
-  }
-
   "getSchoolDetails" should {
     "return an OK" when {
       "school details have been found and encrypted" in {
@@ -65,7 +42,7 @@ class UtilitiesControllerSpec extends ControllerSpec {
 
         assertResult(testController.getSchoolDetails(testUserId, testOrgDevId.encrypt)(standardRequest)) { res =>
           status(res) mustBe OK
-          contentAsString(res).decryptType(OrgDetails.reads(MongoFormatting)) mustBe testOrgDetails
+          contentAsJson(res).\("body").as[String].decryptIntoType(OrgDetails.reads(MongoFormatting)) mustBe testOrgDetails
         }
       }
     }
@@ -88,7 +65,7 @@ class UtilitiesControllerSpec extends ControllerSpec {
 
         assertResult(testController.getTeacherDetails(testUserId, testDeversityId.encrypt, testOrgDevId.encrypt)(standardRequest)) { res =>
           status(res) mustBe OK
-          contentAsString(res).decryptType(TeacherDetails.reads(MongoFormatting)) mustBe testTeacherDetails
+          contentAsJson(res).\("body").as[String].decryptIntoType(TeacherDetails.reads(MongoFormatting)) mustBe testTeacherDetails
         }
       }
     }

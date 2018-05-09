@@ -17,6 +17,7 @@
 package controllers
 
 import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import common.{EnrolmentsNotFoundException, MissingAccountException}
 import helpers.controllers.ControllerSpec
 import models.ClassRoom
@@ -62,8 +63,8 @@ class ClassRoomControllerSpec extends ControllerSpec {
         mockGetClassesForTeacher(classList = Future(testClassList))
 
         runActionWithAuth(testController.getClassesForTeacher(testUserId), standardRequest, "individual") { res =>
-          status(res)                                       mustBe OK
-          contentAsString(res).decryptType[List[ClassRoom]] mustBe testClassList
+          status(res)                                           mustBe OK
+          contentAsJson(res).\("body").as[String].decryptIntoType[List[ClassRoom]] mustBe testClassList
         }
       }
     }
@@ -95,8 +96,8 @@ class ClassRoomControllerSpec extends ControllerSpec {
         mockGetClassRoom(classRoom = Future(Some(testClassRoom)))
 
         runActionWithAuth(testController.getClassRoom(testUserId, generateTestSystemId("class")), standardRequest, "individual") { res =>
-          status(res)                                 mustBe OK
-          contentAsString(res).decryptType[ClassRoom] mustBe testClassRoom
+          status(res)                                     mustBe OK
+          contentAsJson(res).\("body").as[String].decryptIntoType[ClassRoom] mustBe testClassRoom
         }
       }
     }

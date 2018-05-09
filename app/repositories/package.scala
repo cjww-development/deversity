@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import com.cjwwdev.implicits.ImplicitHandlers
 import models.formatters.{BaseFormatting, MongoFormatting}
 import reactivemongo.bson.BSONDocument
 
-package object repositories extends ImplicitHandlers {
+package object repositories {
   implicit val mongoFormatting: BaseFormatting = MongoFormatting
 
   val getSelectorHead: BSONDocument => (String, String) = selector => (selector.elements.head.name, selector.elements.head.value.toString)

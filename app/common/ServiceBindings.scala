@@ -50,7 +50,7 @@ class ServiceBindings extends AbstractModule {
     bind(classOf[RegistrationCodeRepository]).to(classOf[RegistrationCodeRepositoryImpl]).asEagerSingleton()
     bind(classOf[UserAccountRepository]).to(classOf[UserAccountRepositoryImpl]).asEagerSingleton()
     bind(classOf[ClassRoomRepository]).to(classOf[ClassRoomRepositoryImpl]).asEagerSingleton()
-    bind(classOf[RepositoryIndexer]).to(classOf[RepositoryIndexerImpl]).asEagerSingleton()
+    bind(classOf[RepositoryIndexer]).to(classOf[DeversityIndexing]).asEagerSingleton()
   }
 
   def bindOther(): Unit = {

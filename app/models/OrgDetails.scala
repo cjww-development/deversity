@@ -32,7 +32,7 @@ object OrgDetails {
     (__ \ "location").read[String](formatters.locationReads)
   )(OrgDetails.apply _)
 
-  implicit val writes: OWrites[OrgDetails] = (
+  val writes: OWrites[OrgDetails] = (
     (__ \ "orgName").write[String] and
     (__ \ "initials").write[String] and
     (__ \ "location").write[String]

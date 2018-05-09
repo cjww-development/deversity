@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import com.cjwwdev.implicits.ImplicitHandlers
 import play.api.libs.json.{Format, Reads, Writes}
 
-package object controllers extends ImplicitHandlers{
+package object controllers {
   val stringReads  = Reads.StringReads
   val stringWrites = Writes.StringWrites
   val stringFormat = Format(stringReads, stringWrites)

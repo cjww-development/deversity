@@ -15,15 +15,13 @@
  */
 package controllers
 
-import javax.inject.Inject
-
 import com.cjwwdev.auth.backend.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
-import com.cjwwdev.security.encryption.DataSecurity
 import common.{BackendController, EnrolmentsNotFoundException, MissingAccountException}
-import models.ClassRoom._
-import play.api.mvc.{Action, AnyContent, Result}
+import javax.inject.Inject
+import play.api.mvc.{Action, AnyContent}
 import services.ClassRoomService
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,9 +35,15 @@ trait ClassRoomController extends BackendController with Authorisation {
   def createNewClassRoom(userId: String): Action[String] = Action.async(parse.text) { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { user =>
-        classRoomService.createClassRoom(request.body.decrypt, user.id) map {
-          case MongoSuccessCreate => Created
-          case MongoFailedCreate  => InternalServerError
+        withEncryptedUrl(request.body) { classRoom =>
+          classRoomService.createClassRoom(classRoom, user.id) map {
+            case MongoSuccessCreate => withJsonResponseBody(CREATED, s"Created class room $classRoom") { json =>
+              Created(json)
+            }
+            case MongoFailedCreate  => withJsonResponseBody(INTERNAL_SERVER_ERROR, s"There was problem creating classroom $classRoom") { json =>
+              InternalServerError(json)
+            }
+          }
         }
       }
     }
@@ -49,10 +53,20 @@ trait ClassRoomController extends BackendController with Authorisation {
     validateAs(USER, userId) {
       authorised(userId) { user =>
         classRoomService.getClassesForTeachers(user.id) map { list =>
-          Ok(DataSecurity.encryptType(list))
+          val (status, body) = if(list.nonEmpty) (OK, list.encryptType) else (NO_CONTENT, "No classes found the given user")
+          withJsonResponseBody(status, body) { json =>
+            status match {
+              case OK         => Ok(json)
+              case NO_CONTENT => NoContent
+            }
+          }
         } recover {
-          case _: MissingAccountException => NotFound
-          case _                          => InternalServerError
+          case _: MissingAccountException => withJsonResponseBody(NOT_FOUND, "No account found") { json =>
+            NotFound(json)
+          }
+          case _ => withJsonResponseBody(INTERNAL_SERVER_ERROR, "There was a problem retrieving classes for the teacher") { json =>
+            InternalServerError(json)
+          }
         }
       }
     }
@@ -61,10 +75,18 @@ trait ClassRoomController extends BackendController with Authorisation {
   def getClassRoom(userId: String, classId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { user =>
-        classRoomService.getClassroom(user.id, classId) map {
-          _.fold[Result](NotFound)(classRoom => Ok(classRoom.encryptType))
+        classRoomService.getClassroom(user.id, classId) map { classRoom =>
+          val (status, body) = classRoom.fold((NOT_FOUND, s"No class room found for $classId"))(room => (OK, room.encryptType))
+          withJsonResponseBody(status, body) { json =>
+            status match {
+              case OK        => Ok(json)
+              case NOT_FOUND => NotFound(json)
+            }
+          }
         } recover {
-          case _ => InternalServerError
+          case _ => withJsonResponseBody(INTERNAL_SERVER_ERROR, s"There was a problem getting the requested classroom") { json =>
+            InternalServerError(json)
+          }
         }
       }
     }
@@ -73,12 +95,25 @@ trait ClassRoomController extends BackendController with Authorisation {
   def deleteClassRoom(userId: String, classId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { user =>
-        classRoomService.deleteClassRoom(user.id, classId) map {
-          case MongoSuccessDelete => Ok
-          case MongoFailedDelete  => InternalServerError
+        classRoomService.deleteClassRoom(user.id, classId) map { resp =>
+          val (status, body) = resp match {
+            case MongoSuccessDelete => (OK, "Classroom deleted")
+            case MongoFailedDelete  => (INTERNAL_SERVER_ERROR, "There was a problem deleting the classroom")
+          }
+
+          withJsonResponseBody(status, body) { json =>
+            status match {
+              case OK                    => Ok(json)
+              case INTERNAL_SERVER_ERROR => InternalServerError(json)
+            }
+          }
         } recover {
-          case _: EnrolmentsNotFoundException => InternalServerError
-          case _: MissingAccountException     => NotFound
+          case _: EnrolmentsNotFoundException => withJsonResponseBody(INTERNAL_SERVER_ERROR, "Appropriate enrolments couldn't be found") { json =>
+            InternalServerError(json)
+          }
+          case _: MissingAccountException => withJsonResponseBody(NOT_FOUND, "No account found") { json =>
+            NotFound(json)
+          }
         }
       }
     }

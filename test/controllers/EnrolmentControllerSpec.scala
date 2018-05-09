@@ -15,16 +15,17 @@
  */
 package controllers
 
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.security.encryption.DataSecurity
 import common.{AlreadyExistsException, MissingAccountException, RegistrationCodeExpiredException, RegistrationCodeNotFoundException}
 import helpers.controllers.ControllerSpec
-import models.{DeversityEnrolment, RegistrationCode}
 import models.formatters.MongoFormatting
-import play.api.libs.json.{Format, JsSuccess, OWrites}
+import models.{DeversityEnrolment, RegistrationCode}
+import play.api.libs.json.{Format, JsSuccess, Json}
 import play.api.test.FakeRequest
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class EnrolmentControllerSpec extends ControllerSpec {
 
@@ -34,7 +35,6 @@ class EnrolmentControllerSpec extends ControllerSpec {
   }
 
   implicit val enrolmentFormatter: Format[DeversityEnrolment] = DeversityEnrolment.format(MongoFormatting)
-  implicit val enrolmentWrites: OWrites[DeversityEnrolment] = DeversityEnrolment.writes
 
   "createDeversityId" should {
     "return an Ok" when {
@@ -93,7 +93,7 @@ class EnrolmentControllerSpec extends ControllerSpec {
 
         runActionWithAuth(testController.getDeversityEnrolment(testUserId), standardRequest, "individual") { result =>
           status(result) mustBe OK
-          DataSecurity.decryptIntoType[DeversityEnrolment](contentAsString(result)) mustBe JsSuccess(testStudentEnrolment)
+          contentAsJson(result).\("body").as[String].decryptIntoType[DeversityEnrolment] mustBe testStudentEnrolment
         }
       }
     }
@@ -119,14 +119,14 @@ class EnrolmentControllerSpec extends ControllerSpec {
     }
   }
 
-  "updateDeversityInformation" should {
+  "updateDeversityEnrolment" should {
     "return an Ok" when {
       "the users deversity information has been updated" in {
-        val request: FakeRequest[String] = standardRequest.withBody(testStudentEnrolment.encryptType)
+        val request: FakeRequest[String] = standardRequest.withBody(DataSecurity.encryptType(testStudentEnrolment))
 
         mockUpdateDeversityEnrolment(success = true)
 
-        runActionWithAuth(testController.updateDeversityInformation(testUserId), request, "individual") {
+        runActionWithAuth(testController.updateDeversityEnrolment(testUserId), request, "individual") {
           status(_) mustBe OK
         }
       }
@@ -134,11 +134,11 @@ class EnrolmentControllerSpec extends ControllerSpec {
 
     "return an InternalServerError" when {
       "there was a problem updating the users deversity information" in {
-        val request: FakeRequest[String] = standardRequest.withBody(testStudentEnrolment.encryptType)
+        val request: FakeRequest[String] = standardRequest.withBody(DataSecurity.encryptType(testStudentEnrolment))
 
         mockUpdateDeversityEnrolment(success = false)
 
-        runActionWithAuth(testController.updateDeversityInformation(testUserId), request, "individual") {
+        runActionWithAuth(testController.updateDeversityEnrolment(testUserId), request, "individual") {
           status(_) mustBe INTERNAL_SERVER_ERROR
         }
       }
@@ -173,8 +173,8 @@ class EnrolmentControllerSpec extends ControllerSpec {
         mockGetRegistrationCode(fetched = true)
 
         runActionWithAuth(testController.getRegistrationCode(testUserId), standardRequest, "individual") { res =>
-          status(res)                                        mustBe OK
-          contentAsString(res).decryptType[RegistrationCode] mustBe testRegistrationCode
+          status(res)                                                               mustBe OK
+          contentAsJson(res).\("body").as[String].decryptIntoType[RegistrationCode] mustBe testRegistrationCode
         }
       }
     }
@@ -197,7 +197,7 @@ class EnrolmentControllerSpec extends ControllerSpec {
 
         runActionWithAuth(testController.lookupRegistrationCode(testUserId, "testRegCode"), standardRequest, "individual") { res =>
           status(res)                  mustBe OK
-          contentAsString(res).decrypt mustBe testUserId
+          contentAsJson(res).\("body").as[String].decrypt mustBe testUserId
         }
       }
     }

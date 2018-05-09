@@ -61,12 +61,6 @@ trait UserAccountRepository extends DatabaseRepository with Logging {
     }
   }
 
-  def getPendingEnrolmentCount(orgName: String): Future[Int] = {
-    collection flatMap {
-      _.find(pendingEnrolmentCountSelector(orgName)).cursor[JsValue]().collect[List]() map(_.size)
-    }
-  }
-
   def createDeversityId(userId: String): Future[String] = {
     val deversityId   = generateDeversityId
     val findQuery     = BSONDocument("userId" -> userId, "enrolments.deversityId" -> BSONDocument("$exists" -> true))

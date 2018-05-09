@@ -40,11 +40,6 @@ trait MockUtilitiesService extends BeforeAndAfterEach with MockitoSugar with Fix
     reset(mockUtilitiesService)
   }
 
-  def mockGetPendingEnrolments(returned: Future[Int]): OngoingStubbing[Future[Int]] = {
-    when(mockUtilitiesService.getPendingEnrolmentCount(ArgumentMatchers.any()))
-      .thenReturn(returned)
-  }
-
   def mockGetSchoolDetails(fetched: Boolean): OngoingStubbing[Future[OrgDetails]] = {
     when(mockUtilitiesService.getSchoolDetails(ArgumentMatchers.any()))
       .thenReturn(if(fetched) Future(testOrgDetails) else Future.failed(new MissingAccountException("")))

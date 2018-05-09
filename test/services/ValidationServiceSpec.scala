@@ -62,7 +62,6 @@ class ValidationServiceSpec extends ServiceSpec {
   "validateTeacher" should {
     "return the teachers deversityId" when {
       "a teacher has been successfully validated" in {
-        val testUserId     = generateTestSystemId(USER)
         val testTeacherAcc = testUserAccount(AccountEnums.teacher)
         val testRegCode    = "testRegCode"
 
@@ -75,7 +74,7 @@ class ValidationServiceSpec extends ServiceSpec {
         mockGetUserBySelector(returned = testTeacherAcc)
 
         awaitAndAssert(testService.validateTeacher(testRegCode, testOrgDevId)) {
-          _ mustBe testTeacherAcc.deversityDetails.get.schoolName
+          _ mustBe testTeacherAcc.deversityDetails.get.schoolDevId
         }
       }
     }

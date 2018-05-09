@@ -20,8 +20,7 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class DeversityEnrolment(statusConfirmed: String,
-                              schoolName: String,
+case class DeversityEnrolment(schoolDevId: String,
                               role: String,
                               title: Option[String],
                               room: Option[String],
@@ -31,8 +30,7 @@ object DeversityEnrolment {
   implicit def format(implicit formatters: BaseFormatting): Format[DeversityEnrolment] = OFormat(reads(formatters), writes)
 
   def reads(implicit formatters: BaseFormatting): Reads[DeversityEnrolment] = (
-    (__ \ "statusConfirmed").read[String](formatters.statusConfirmedReads) and
-    (__ \ "schoolName").read[String] and
+    (__ \ "schoolDevId").read[String] and
     (__ \ "role").read[String](formatters.roleReads) and
     (__ \ "title").readNullable[String] and
     (__ \ "room").readNullable[String] and
@@ -44,8 +42,7 @@ object DeversityEnrolment {
   )
 
   def writes: OWrites[DeversityEnrolment] = (
-    (__ \ "statusConfirmed").write[String] and
-    (__ \ "schoolName").write[String] and
+    (__ \ "schoolDevId").write[String] and
     (__ \ "role").write[String] and
     (__ \ "title").writeNullable[String] and
     (__ \ "room").writeNullable[String] and

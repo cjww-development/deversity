@@ -15,12 +15,11 @@
  */
 package controllers
 
-import javax.inject.Inject
-
 import com.cjwwdev.auth.backend.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import common.BackendController
-import play.api.Logger
+import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent}
 import services.UtilitiesService
 
@@ -32,28 +31,18 @@ class UtilitiesControllerImpl @Inject()(val utilitiesService: UtilitiesService,
 trait UtilitiesController extends BackendController with Authorisation {
   val utilitiesService: UtilitiesService
 
-  def getPendingEnrolmentsCount(orgId: String): Action[AnyContent] = Action.async { implicit request =>
-    validateAs(ORG_USER, orgId) {
-      authorised(orgId) { user =>
-        utilitiesService.getPendingEnrolmentCount(user.id) map { count =>
-          Ok(count.toString.encrypt)
-        } recover {
-          case e =>
-            logger.error(s"[UtilitiesController] - [getPendingEnrolmentCount] - There was a problem getting the count for org id $orgId", e)
-            InternalServerError
-        }
-      }
-    }
-  }
-
-  def getSchoolDetails(userId: String, orgDevId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getSchoolDetails(userId: String, schoolDevId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { _ =>
-        withEncryptedUrl(orgDevId) { oDId =>
+        withEncryptedUrl(schoolDevId) { oDId =>
           utilitiesService.getSchoolDetails(oDId) map { details =>
-            Ok(details.encryptType)
+            withJsonResponseBody(OK, details.encryptType) { json =>
+              Ok(json)
+            }
           } recover {
-            case _ => NotFound
+            case _ => withJsonResponseBody(NOT_FOUND, "No school details found") { json =>
+              NotFound(json)
+            }
           }
         }
       }
@@ -66,9 +55,13 @@ trait UtilitiesController extends BackendController with Authorisation {
         withEncryptedUrl(teacherDevId) { tDevId =>
           withEncryptedUrl(schoolDevId) { sDevId =>
             utilitiesService.getTeacherDetails(tDevId, sDevId) map { teacherDetails =>
-              Ok(teacherDetails.encryptType)
+              withJsonResponseBody(OK, teacherDetails.encryptType) { json =>
+                Ok(json)
+              }
             } recover {
-              case _ => NotFound
+              case _ => withJsonResponseBody(NOT_FOUND, "No teacher details found") { json =>
+                NotFound(json)
+              }
             }
           }
         }

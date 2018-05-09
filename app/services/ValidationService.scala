@@ -19,6 +19,7 @@ package services
 import javax.inject.Inject
 
 import com.cjwwdev.logging.Logging
+import com.cjwwdev.implicits.ImplicitJsValues._
 import common.EnrolmentsNotFoundException
 import models.OrgAccount
 import repositories.{OrgAccountRepository, RegistrationCodeRepository, UserAccountRepository}

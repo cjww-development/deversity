@@ -30,8 +30,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "pending",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "teacher",
             | "title" : "Professor",
             | "room" : "testRoom"
@@ -40,12 +39,11 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val testModel = DeversityEnrolment(
-          statusConfirmed = "pending",
-          schoolName = "TestSchoolName",
-          role = "teacher",
-          title = Some("Professor"),
-          room = Some("testRoom"),
-          teacher = None
+          schoolDevId = "testOrgDevId",
+          role        = "teacher",
+          title       = Some("Professor"),
+          room        = Some("testRoom"),
+          teacher     = None
         )
 
         Json.fromJson[DeversityEnrolment](testJson) mustBe JsSuccess(testModel)
@@ -76,8 +74,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "pending",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "teacher",
             | "title" : "Professor",
             | "room" : "testRoom"
@@ -86,12 +83,11 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         )
 
         val testModel = DeversityEnrolment(
-          statusConfirmed = "pending",
-          schoolName = "TestSchoolName",
-          role = "teacher",
-          title = Some("Professor"),
-          room = Some("testRoom"),
-          teacher = None
+          schoolDevId = "testOrgDevId",
+          role        = "teacher",
+          title       = Some("Professor"),
+          room        = Some("testRoom"),
+          teacher     = None
         )
 
         Json.fromJson[DeversityEnrolment](testJson) mustBe JsSuccess(testModel)
@@ -103,8 +99,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "invalidStatus",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "invalidRole",
             | "title" : "Professor",
             | "room" : "testRoom"
@@ -115,8 +110,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val result = Json.fromJson[DeversityEnrolment](testJson)
 
         result.mustHaveErrors(Map(
-          JsPath() \ "statusConfirmed" -> Seq(ValidationError("Invalid status")),
-          JsPath() \ "role"            -> Seq(ValidationError("Invalid role"))
+          JsPath() \ "role" -> Seq(ValidationError("Invalid role"))
         ))
       }
     }
@@ -128,8 +122,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "pending",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "teacher",
             | "room" : "testRoom"
             |}
@@ -149,8 +142,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "pending",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "teacher",
             | "title" : "Professor"
             |}
@@ -170,8 +162,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "pending",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "teacher"
             |}
           """.stripMargin
@@ -190,8 +181,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "pending",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "teacher",
             | "teacher" : "testTeacher"
             |}
@@ -212,8 +202,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "pending",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "student"
             |}
           """.stripMargin
@@ -232,8 +221,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val testJson = Json.parse(
           """
             |{
-            | "statusConfirmed" : "pending",
-            | "schoolName" : "TestSchoolName",
+            | "schoolDevId" : "testOrgDevId",
             | "role" : "student",
             | "title" : "Professor",
             | "room" : "testRoom"

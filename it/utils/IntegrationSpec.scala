@@ -18,7 +18,7 @@ package utils
 
 import akka.util.Timeout
 import com.cjwwdev.http.headers.HeaderPackage
-import com.cjwwdev.implicits.ImplicitHandlers
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.testing.integration.IntegrationTestSpec
 import com.cjwwdev.testing.integration.application.IntegrationApplication
 import com.cjwwdev.testing.integration.wiremock.WireMockSetup
@@ -34,21 +34,22 @@ import scala.util.Random
 trait IntegrationSpec
   extends IntegrationTestSpec
     with TestDataGenerator
-    with ImplicitHandlers
     with IntegrationApplication
     with Fixtures
     with WireMockSetup {
 
   override implicit def defaultAwaitTimeout: Timeout = 5.seconds
 
-  override val testContextId   = s"""{"contextId" : "${generateTestSystemId(CONTEXT)}"}"""
+  override val testContextId   = generateTestSystemId(CONTEXT)
   override val testOrgId       = generateTestSystemId(ORG)
   override val testUserId      = generateTestSystemId(USER)
   override val testDeversityId = generateTestSystemId(DEVERSITY)
 
   override val appConfig = Map(
     "microservice.external-services.auth-microservice.domain" -> s"$wiremockUrl/auth",
-    "microservice.external-services.session-store.domain"     -> s"$wiremockUrl/session-store"
+    "microservice.external-services.auth-microservice.uri"    -> "/get-current-user/:sessionId",
+    "microservice.external-services.session-store.domain"     -> s"$wiremockUrl/session-store",
+    "microservice.external-services.session-store.uri"        -> "/session/:contextId/data?key=contextId"
   )
 
   override val currentAppBaseUrl = "deversity"
@@ -62,7 +63,7 @@ trait IntegrationSpec
 
   def client(url: String): WSRequest = ws.url(url).withHeaders(
     "cjww-headers" -> HeaderPackage("abda73f4-9d52-4bb8-b20d-b5fffd0cc130", testCookieId).encryptType,
-    CONTENT_TYPE  -> TEXT
+    CONTENT_TYPE   -> TEXT
   )
 
   private def afterITest(): Unit = {
