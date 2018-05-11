@@ -22,8 +22,7 @@ import play.api.libs.functional.syntax._
 case class TeacherDetails(userId: String,
                           title: String,
                           lastName: String,
-                          room: String,
-                          status: String)
+                          room: String)
 
 object TeacherDetails {
 
@@ -31,16 +30,14 @@ object TeacherDetails {
     (__ \ "userId").read[String] and
     (__ \ "title").read[String] and
     (__ \ "lastName").read[String](formatters.lastNameReads) and
-    (__ \ "room").read[String] and
-    (__ \ "status").read[String](formatters.statusConfirmedReads)
+    (__ \ "room").read[String]
   )(TeacherDetails.apply _)
 
-  implicit val writes: OWrites[TeacherDetails] = (
+  val writes: OWrites[TeacherDetails] = (
     (__ \ "userId").write[String] and
     (__ \ "title").write[String] and
     (__ \ "lastName").write[String] and
-    (__ \ "room").write[String] and
-    (__ \ "status").write[String]
+    (__ \ "room").write[String]
   )(unlift(TeacherDetails.unapply))
 
   implicit def format(implicit formatters: BaseFormatting): Format[TeacherDetails] = OFormat(reads(formatters), writes)

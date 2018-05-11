@@ -24,12 +24,12 @@ object UserAccountSelectors {
 
   val teacherSelector: (String, String) => BSONDocument = (userId, orgDevId) => BSONDocument(
     "userId"                      -> userId,
-    "deversityDetails.schoolName" -> orgDevId
+    "deversityDetails.schoolDevId" -> orgDevId
   )
 
   val teacherDetailsSelector: (String, String) => BSONDocument = (teacherDevId, orgDevId) => BSONDocument(
     "enrolments.deversityId"      -> teacherDevId,
-    "deversityDetails.schoolName" -> orgDevId
+    "deversityDetails.schoolDevId" -> orgDevId
   )
 
   val pendingEnrolmentCountSelector: String => BSONDocument = orgName => BSONDocument(

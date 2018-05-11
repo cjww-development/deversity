@@ -17,6 +17,7 @@
 package app
 
 import com.cjwwdev.security.encryption.DataSecurity
+import play.api.libs.json.Json
 import utils.{IntegrationSpec, IntegrationStubbing}
 import play.api.test.Helpers._
 
@@ -29,27 +30,27 @@ class ValidationISpec extends IntegrationSpec with IntegrationStubbing {
   val encodedUserRegCode   = DataSecurity.encryptString(userRegCode)
   val encodedSchoolDevId   = DataSecurity.encryptString(testOrgAccount.deversityId)
 
-  s"/validate/school/:regCode" should {
+  s"/validation/school/:regCode" should {
     "return an OK" when {
       "the school has been validated" in {
         given
           .user.orgUser.isSetup
           .user.orgUser.hasRegistrationCode(testOrgAccount.orgId, orgRegCode)
 
-        val result = await(client(s"$testAppUrl/validate/school/$encodedOrgRegCode").get())
+        val result = await(client(s"$testAppUrl/validation/school/$encodedOrgRegCode").get())
         result.status mustBe OK
       }
     }
 
     "return a Not found" when {
       "the school has not been validated" in {
-        val result = await(client(s"$testAppUrl/validate/school/$encodedOrgRegCode").get())
+        val result = await(client(s"$testAppUrl/validation/school/$encodedOrgRegCode").get())
         result.status mustBe NOT_FOUND
       }
     }
   }
 
-  "/validate/teacher/:regCode/school/:schooDevId" should {
+  "/validation/teacher/:regCode/school/:schoolDevId" should {
     "return an OK" when {
       "the teacher has been validated" in {
         given
@@ -58,14 +59,14 @@ class ValidationISpec extends IntegrationSpec with IntegrationStubbing {
           .user.orgUser.isSetup
           .user.individualUser.hasRegistrationCode(testUserAcc.userId, userRegCode)
 
-        val result = await(client(s"$testAppUrl/validate/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get())
+        val result = await(client(s"$testAppUrl/validation/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get())
         result.status mustBe OK
       }
     }
 
     "return a Not found" when {
       "the teacher has not been validated" in {
-        val result = await(client(s"$testAppUrl/validate/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get())
+        val result = await(client(s"$testAppUrl/validation/teacher/$encodedUserRegCode/school/$encodedSchoolDevId").get())
         result.status mustBe NOT_FOUND
       }
     }

@@ -15,11 +15,11 @@
  */
 package services
 
-import javax.inject.Inject
-
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.mongo.responses.MongoUpdatedResponse
+import javax.inject.Inject
 import models.{DeversityEnrolment, RegistrationCode}
-import repositories.{OrgAccountRepository, RegistrationCodeRepository, UserAccountRepository}
+import repositories.{RegistrationCodeRepository, UserAccountRepository}
 import selectors.UserAccountSelectors.userIdSelector
 
 import scala.concurrent.ExecutionContext.Implicits.global

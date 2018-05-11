@@ -27,28 +27,6 @@ class UtilitiesServiceSpec extends ServiceSpec {
     override val orgAccountRepository = mockOrgAccountRepo
   }
 
-  "getPendingEnrolmentCount" should {
-    "return a JsValue" when {
-      "the count has been calculated" in {
-        mockGetSchool(fetched = true)
-
-        mockGetPendingEnrolmentCount
-
-        awaitAndAssert(testService.getPendingEnrolmentCount(generateTestSystemId(ORG))) {
-          _ mustBe 1
-        }
-      }
-    }
-
-    "throw a missing account exception" when {
-      "the given orgId doesn't matched a held account" in {
-        mockGetSchool(fetched = false)
-
-        intercept[MissingAccountException](await(testService.getPendingEnrolmentCount(generateTestSystemId(ORG))))
-      }
-    }
-  }
-
   "getSchoolDetails" should {
     "return an org details" in {
       mockGetSchool(fetched = true)
@@ -70,8 +48,7 @@ class UtilitiesServiceSpec extends ServiceSpec {
           userId   = testAcc.userId,
           title    = testAcc.deversityDetails.get.title.get,
           lastName = testAcc.lastName,
-          room     = testAcc.deversityDetails.get.room.get,
-          status   = testAcc.deversityDetails.get.statusConfirmed
+          room     = testAcc.deversityDetails.get.room.get
         )
       }
     }

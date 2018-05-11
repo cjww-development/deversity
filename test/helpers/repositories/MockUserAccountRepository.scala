@@ -55,9 +55,4 @@ trait MockUserAccountRepository extends BeforeAndAfterEach with MockitoSugar wit
     when(mockUserAccountRepo.updateDeversityEnrolment(ArgumentMatchers.any(), ArgumentMatchers.any()))
       .thenReturn(if(updated) Future(MongoSuccessUpdate) else Future.failed(new UpdateFailedException("")))
   }
-
-  def mockGetPendingEnrolmentCount: OngoingStubbing[Future[Int]] = {
-    when(mockUserAccountRepo.getPendingEnrolmentCount(ArgumentMatchers.any()))
-      .thenReturn(Future.successful(1))
-  }
 }

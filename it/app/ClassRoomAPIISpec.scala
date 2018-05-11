@@ -16,6 +16,8 @@
 package app
 
 import com.cjwwdev.security.encryption.DataSecurity
+import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.implicits.ImplicitJsValues._
 import models.ClassRoom
 import play.api.libs.json.Writes
 import reactivemongo.bson.BSONDocument
@@ -55,8 +57,8 @@ class ClassRoomAPIISpec extends IntegrationSpec with IntegrationStubbing {
         .user.individualUser.isAuthorised
 
       val result = await(client(s"$testAppUrl/teacher/$testUserId/classrooms").get)
-      result.status                                                  mustBe OK
-      DataSecurity.decryptIntoType[List[ClassRoom]](result.body).get mustBe List(ClassRoom(testClassId, testDeversityId, testDeversityId, "Test class name"))
+      result.status                                                    mustBe OK
+      result.json.get[String]("body").decryptIntoType[List[ClassRoom]] mustBe List(ClassRoom(testClassId, testDeversityId, testDeversityId, "Test class name"))
     }
   }
 
@@ -69,8 +71,8 @@ class ClassRoomAPIISpec extends IntegrationSpec with IntegrationStubbing {
         .user.individualUser.isAuthorised
 
       val result = await(client(s"$testAppUrl/teacher/$testUserId/classroom/$testClassId").get)
-      result.status                                            mustBe OK
-      DataSecurity.decryptIntoType[ClassRoom](result.body).get mustBe ClassRoom(testClassId, testDeversityId, testDeversityId, "Test class name")
+      result.status                                              mustBe OK
+      result.json.get[String]("body").decryptIntoType[ClassRoom] mustBe ClassRoom(testClassId, testDeversityId, testDeversityId, "Test class name")
     }
   }
 

@@ -15,15 +15,15 @@
  */
 package controllers
 
-import javax.inject.Inject
-
 import com.cjwwdev.auth.backend.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
-import com.cjwwdev.security.encryption.DataSecurity
 import common._
+import javax.inject.Inject
 import models.DeversityEnrolment
-import play.api.mvc.{Action, AnyContent, Result}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent}
 import services.EnrolmentService
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,11 +38,19 @@ trait EnrolmentController extends BackendController with Authorisation {
     validateAs(USER, userId) {
       authorised(userId) { user =>
         enrolmentService.createDeversityId(user.id) map { devId =>
-          Ok(devId)
+          withJsonResponseBody(OK, devId) { json =>
+            Ok(json)
+          }
         } recover {
-          case _: AlreadyExistsException  => Conflict
-          case _: MissingAccountException => NotFound
-          case _                          => InternalServerError
+          case _: AlreadyExistsException => withJsonResponseBody(CONFLICT, "Current user already has a deversity enrolment") { json =>
+            Conflict(json)
+          }
+          case _: MissingAccountException => withJsonResponseBody(NOT_FOUND, "No account found") { json =>
+            NotFound(json)
+          }
+          case _ => withJsonResponseBody(INTERNAL_SERVER_ERROR, "There was a problem creating the users deversity enrolment") { json =>
+            InternalServerError(json)
+          }
         }
       }
     }
@@ -51,23 +59,42 @@ trait EnrolmentController extends BackendController with Authorisation {
   def getDeversityEnrolment(userId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { user =>
-        enrolmentService.getEnrolment(user.id) map {
-          _.fold[Result](NoContent)(enr => Ok(DataSecurity.encryptType(enr)))
+        enrolmentService.getEnrolment(user.id) map { enr =>
+          val (status, body) = enr.fold[(Int, JsValue)]((NO_CONTENT, ""))(enr => (OK, enr.encryptType))
+          withJsonResponseBody(status, body) { json =>
+            status match {
+              case OK         => Ok(json)
+              case NO_CONTENT => NoContent
+            }
+          }
         } recover {
-          case _: MissingAccountException => NotFound
-          case _                          => InternalServerError
+          case _: MissingAccountException => withJsonResponseBody(NO_CONTENT, "No account found") { json =>
+            NotFound(json)
+          }
+          case _ => withJsonResponseBody(INTERNAL_SERVER_ERROR, "There was problem getting the deversity enrolment") { json =>
+            InternalServerError(json)
+          }
         }
       }
     }
   }
 
-  def updateDeversityInformation(userId: String): Action[String] = Action.async(parse.text) { implicit request =>
+  def updateDeversityEnrolment(userId: String): Action[String] = Action.async(parse.text) { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { user =>
         withJsonBody[DeversityEnrolment](DeversityEnrolment.reads) { details =>
-          enrolmentService.updateDeversityEnrolment(user.id, details) map {
-            case MongoSuccessUpdate => Ok
-            case MongoFailedUpdate  => InternalServerError
+          enrolmentService.updateDeversityEnrolment(user.id, details) map { resp =>
+            val (status, body) = resp match {
+              case MongoSuccessUpdate => (OK, "Deversity enrolment has been updated")
+              case MongoFailedUpdate  => (INTERNAL_SERVER_ERROR, "There was a problem updating the deversity enrolment")
+            }
+
+            withJsonResponseBody(status, body) { json =>
+              status match {
+                case OK                    => Ok(json)
+                case INTERNAL_SERVER_ERROR => InternalServerError(json)
+              }
+            }
           }
         }
       }
@@ -77,7 +104,18 @@ trait EnrolmentController extends BackendController with Authorisation {
   def generateRegistrationCode(userId: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(userId) { user =>
       enrolmentService.generateRegistrationCode(user.id) map { generated =>
-        if(generated) Ok else InternalServerError
+        val (status, body) = if(generated) {
+          (OK, "Registration code generated")
+        } else {
+          (INTERNAL_SERVER_ERROR, "There was a problem generating the registration code")
+        }
+
+        withJsonResponseBody(status, body) { json =>
+          status match {
+            case OK                    => Ok(json)
+            case INTERNAL_SERVER_ERROR => InternalServerError(json)
+          }
+        }
       }
     }
   }
@@ -85,9 +123,13 @@ trait EnrolmentController extends BackendController with Authorisation {
   def getRegistrationCode(userId: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(userId) { user =>
       enrolmentService.getRegistrationCode(user.id) map { regCode =>
-        Ok(regCode.encryptType)
+        withJsonResponseBody(OK, regCode.encryptType) { json =>
+          Ok(json)
+        }
       } recover {
-        case _ => InternalServerError
+        case _ => withJsonResponseBody(INTERNAL_SERVER_ERROR, "There was a problem getting the reg code") { json =>
+          InternalServerError(json)
+        }
       }
     }
   }
@@ -96,10 +138,16 @@ trait EnrolmentController extends BackendController with Authorisation {
     validateAs(USER, userId) {
       authorised(userId) { _ =>
         enrolmentService.lookupRegistrationCode(regCode) map { id =>
-          Ok(id.encrypt)
+          withJsonResponseBody(OK, id.encrypt) { json =>
+            Ok(json)
+          }
         } recover {
-          case _: RegistrationCodeNotFoundException => NotFound
-          case _: RegistrationCodeExpiredException  => BadRequest
+          case _: RegistrationCodeNotFoundException => withJsonResponseBody(NOT_FOUND, "Could not match registration code to a user") { json =>
+            NotFound(json)
+          }
+          case _: RegistrationCodeExpiredException  => withJsonResponseBody(BAD_REQUEST, "Registration code for user has expired") { json =>
+            BadRequest(json)
+          }
         }
       }
     }

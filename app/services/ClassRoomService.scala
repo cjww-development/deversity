@@ -19,6 +19,7 @@ import java.util.UUID
 import javax.inject.Inject
 
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse}
+import com.cjwwdev.implicits.ImplicitJsValues._
 import common.EnrolmentsNotFoundException
 import models.ClassRoom
 import repositories.{ClassRoomRepository, UserAccountRepository}
@@ -46,7 +47,7 @@ trait ClassRoomService {
       acc        <- userAccountRepository.getUserBySelector(userIdSelector(userId))
       enrs       =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No enrolments for user ${acc.userId}"))
       devDetails =  acc.deversityDetails.getOrElse(throw new EnrolmentsNotFoundException(s"No deversity details for user ${acc.userId}"))
-      classRoom  =  generateClassRoom(className, enrs.get[String]("deversityId"), devDetails.schoolName)
+      classRoom  =  generateClassRoom(className, enrs.get[String]("deversityId"), devDetails.schoolDevId)
       resp       <- classRoomRepository.createNewClassRoom(classRoom)
     } yield resp
   }

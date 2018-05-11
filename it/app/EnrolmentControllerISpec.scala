@@ -15,12 +15,11 @@
  */
 package app
 
-import com.cjwwdev.security.encryption.DataSecurity
-import models.{DeversityEnrolment, RegistrationCode}
+import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.implicits.ImplicitJsValues._
 import models.formatters.MongoFormatting
-import play.api.libs.json.JsSuccess
+import models.{DeversityEnrolment, RegistrationCode}
 import utils.{IntegrationSpec, IntegrationStubbing}
-import play.api.test.Helpers._
 
 class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing {
 
@@ -28,14 +27,14 @@ class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing 
 
   val testRegCode = generateRegistrationCode
 
-  s"/$testUserId/create-deversity-id" should {
+  s"/user/$testUserId/create-deversity-id" should {
     "return an Ok" when {
       "a deversity id has been created for a user" in {
         given
           .user.individualUser.isSetup
           .user.individualUser.isAuthorised
 
-        val result = await(client(s"$testAppUrl/$testUserId/create-deversity-id").patch("abc"))
+        val result = await(client(s"$testAppUrl/user/$testUserId/create-deversity-id").patch("abc"))
         result.status mustBe OK
 
         given.user.individualUser.getUser.\("enrolments").\("deversityId").as[String].contains("deversity") mustBe true
@@ -49,7 +48,7 @@ class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing 
           .user.individualUser.hasDeversityId
           .user.individualUser.isAuthorised
 
-        val result = await(client(s"$testAppUrl/$testUserId/create-deversity-id").patch("abc"))
+        val result = await(client(s"$testAppUrl/user/$testUserId/create-deversity-id").patch("abc"))
         result.status mustBe CONFLICT
       }
     }
@@ -59,7 +58,7 @@ class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing 
         given
           .user.individualUser.isAuthorised
 
-        val result = await(client(s"$testAppUrl/$testUserId/create-deversity-id").patch("abc"))
+        val result = await(client(s"$testAppUrl/user/$testUserId/create-deversity-id").patch("abc"))
         result.status mustBe NOT_FOUND
       }
     }
@@ -72,10 +71,9 @@ class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing 
           .user.individualUser.isSetup
           .user.individualUser.isAuthorised
 
-        val result = await(client(s"$testAppUrl/enrolment/$testUserId/deversity").get)
-        result.status mustBe OK
-        DataSecurity.decryptIntoType[DeversityEnrolment](result.body) mustBe
-          JsSuccess(testUserAccount(AccountEnums.teacher).deversityDetails.get)
+        val result = await(client(s"$testAppUrl/user/$testUserId/enrolment").get)
+        result.status                                                       mustBe OK
+        result.json.get[String]("body").decryptIntoType[DeversityEnrolment] mustBe testUserAccount(AccountEnums.teacher).deversityDetails.get
       }
     }
 
@@ -84,7 +82,7 @@ class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing 
         given
           .user.individualUser.isAuthorised
 
-        val result = await(client(s"$testAppUrl/enrolment/$testUserId/deversity").get)
+        val result = await(client(s"$testAppUrl/user/$testUserId/enrolment").get)
         result.status mustBe NOT_FOUND
       }
     }
@@ -112,8 +110,8 @@ class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing 
           .user.individualUser.isAuthorised
 
         val result = await(client(s"$testAppUrl/user/$testUserId/fetch-registration-code").get)
-        result.status mustBe OK
-        DataSecurity.decryptIntoType[RegistrationCode](result.body).get.code mustBe testRegCode
+        result.status                                                          mustBe OK
+        result.json.get[String]("body").decryptIntoType[RegistrationCode].code mustBe testRegCode
       }
     }
   }

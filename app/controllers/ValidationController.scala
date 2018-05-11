@@ -18,6 +18,7 @@ package controllers
 import javax.inject.Inject
 
 import com.cjwwdev.auth.backend.BaseAuth
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import common.BackendController
 import play.api.mvc.{Action, AnyContent}
 import services.ValidationService
@@ -33,9 +34,13 @@ trait ValidationController extends BackendController with BaseAuth {
     applicationVerification {
       withEncryptedUrl(regCode) { decryptedRegCode =>
         validationService.validateSchool(decryptedRegCode) map { schoolDevId =>
-          Ok(schoolDevId.encrypt)
+          withJsonResponseBody(OK, schoolDevId.encrypt) { json =>
+            Ok(json)
+          }
         } recover {
-          case _ => NotFound
+          case _ => withJsonResponseBody(NOT_FOUND, "Registration code could not be validated") { json =>
+            NotFound(json)
+          }
         }
       }
     }
@@ -46,9 +51,13 @@ trait ValidationController extends BackendController with BaseAuth {
       withEncryptedUrl(regCode) { decryptedRegCode =>
         withEncryptedUrl(schoolDevId) { decryptedSchoolDevId =>
           validationService.validateTeacher(decryptedRegCode, decryptedSchoolDevId) map { teacherDevId =>
-            Ok(teacherDevId.encrypt)
+            withJsonResponseBody(OK, teacherDevId.encrypt) { json =>
+              Ok(json)
+            }
           } recover {
-            case _ => NotFound
+            case _ => withJsonResponseBody(NOT_FOUND, "Registration code could not be validated") { json =>
+              NotFound(json)
+            }
           }
         }
       }

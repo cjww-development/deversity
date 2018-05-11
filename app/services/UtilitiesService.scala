@@ -33,16 +33,6 @@ trait UtilitiesService extends Logging {
   val userAccountRepository: UserAccountRepository
   val orgAccountRepository: OrgAccountRepository
 
-  def getPendingEnrolmentCount(orgId: String): Future[Int] = {
-    for {
-      orgAcc <- orgAccountRepository.getSchool(orgIdSelector(orgId))
-      count  <- userAccountRepository.getPendingEnrolmentCount(orgAcc.deversityId)
-    } yield {
-      logger.info(s"[UtilitiesService] - [getPendingEnrolmentCount] - Got pending enrolment count for org id $orgId")
-      count
-    }
-  }
-
   def getSchoolDetails(orgUserName: String): Future[OrgDetails] = {
     orgAccountRepository.getSchool(orgDevIdSelector(orgUserName)) map accountToDetails
   }
@@ -61,7 +51,6 @@ trait UtilitiesService extends Logging {
     userId    = userAccount.userId,
     title     = userAccount.deversityDetails.get.title.get,
     lastName  = userAccount.lastName,
-    room      = userAccount.deversityDetails.get.room.get,
-    status    = userAccount.deversityDetails.get.statusConfirmed
+    room      = userAccount.deversityDetails.get.room.get
   )
 }

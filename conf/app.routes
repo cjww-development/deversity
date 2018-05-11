@@ -2,23 +2,21 @@
 # This file defines all application app.routes (Higher priority app.routes first)
 # ~~~~
 
-GET         /validate/school/:regCode                                      controllers.ValidationController.validateSchool(regCode)
-GET         /validate/teacher/:regCode/school/:schoolDevId                 controllers.ValidationController.validateTeacher(regCode, schoolDevId)
+GET     /validation/school/:regCode                                      controllers.ValidationController.validateSchool(regCode)
+GET     /validation/teacher/:regCode/school/:schoolDevId                 controllers.ValidationController.validateTeacher(regCode, schoolDevId)
 
-GET         /utilities/:orgId/pending-deversity-enrolments                 controllers.UtilitiesController.getPendingEnrolmentsCount(orgId)
-GET         /user/:userId/teacher/:userName/school/:schoolName/details     controllers.UtilitiesController.getTeacherDetails(userId, userName, schoolName)
+GET     /user/:userId/school/:schoolDevId/details                        controllers.UtilitiesController.getSchoolDetails(userId, schoolDevId)
+GET     /user/:userId/teacher/:teacherDevId/school/:schoolDevId/details  controllers.UtilitiesController.getTeacherDetails(userId, teacherDevId, schoolDevId)
 
-PATCH       /:userId/create-deversity-id                                   controllers.EnrolmentController.createDeversityId(userId)
-GET         /enrolment/:userId/deversity                                   controllers.EnrolmentController.getDeversityEnrolment(userId)
-PATCH       /enrolment/:userId/deversity                                   controllers.EnrolmentController.updateDeversityInformation(userId)
+PATCH   /user/:userId/create-deversity-id                                controllers.EnrolmentController.createDeversityId(userId)
+GET     /user/:userId/enrolment                                          controllers.EnrolmentController.getDeversityEnrolment(userId)
+PATCH   /user/:userId/enrolment                                          controllers.EnrolmentController.updateDeversityEnrolment(userId)
 
-GET         /user/:userId/school/:orgDevId/details                         controllers.UtilitiesController.getSchoolDetails(userId, orgDevId)
+HEAD    /user/:userId/generate-registration-code                         controllers.EnrolmentController.generateRegistrationCode(userId)
+GET     /user/:userId/fetch-registration-code                            controllers.EnrolmentController.getRegistrationCode(userId)
+GET     /user/:userId/lookup/:regCode/lookup-reg-code                    controllers.EnrolmentController.lookupRegistrationCode(userId, regCode)
 
-HEAD        /user/:userId/generate-registration-code                       controllers.EnrolmentController.generateRegistrationCode(userId)
-GET         /user/:userId/fetch-registration-code                          controllers.EnrolmentController.getRegistrationCode(userId)
-GET         /user/:userId/lookup/:regCode/lookup-reg-code                  controllers.EnrolmentController.lookupRegistrationCode(userId, regCode)
-
-POST        /teacher/:userId/create-classroom                              controllers.ClassRoomController.createNewClassRoom(userId)
-GET         /teacher/:userId/classrooms                                    controllers.ClassRoomController.getClassesForTeacher(userId)
-GET         /teacher/:userId/classroom/:classId                            controllers.ClassRoomController.getClassRoom(userId, classId)
-DELETE      /teacher/:userId/classroom/:classId                            controllers.ClassRoomController.deleteClassRoom(userId, classId)
+POST    /teacher/:teacherDevId/create-classroom                          controllers.ClassRoomController.createNewClassRoom(teacherDevId)
+GET     /teacher/:teacherDevId/classrooms                                controllers.ClassRoomController.getClassesForTeacher(teacherDevId)
+GET     /teacher/:teacherDevId/classroom/:classId                        controllers.ClassRoomController.getClassRoom(teacherDevId, classId)
+DELETE  /teacher/:teacherDevId/classroom/:classId                        controllers.ClassRoomController.deleteClassRoom(teacherDevId, classId)
