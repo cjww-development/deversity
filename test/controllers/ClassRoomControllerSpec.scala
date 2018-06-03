@@ -22,6 +22,7 @@ import common.{EnrolmentsNotFoundException, MissingAccountException}
 import helpers.controllers.ControllerSpec
 import models.ClassRoom
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,8 +30,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ClassRoomControllerSpec extends ControllerSpec {
 
   val testController = new ClassRoomController {
-    override val classRoomService = mockClassRoomService
-    override val authConnector    = mockAuthConnector
+    override protected def controllerComponents = stubControllerComponents()
+    override val classRoomService               = mockClassRoomService
+    override val authConnector                  = mockAuthConnector
   }
 
   "createNewClassRoom" should {

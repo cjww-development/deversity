@@ -31,7 +31,7 @@ import reactivemongo.play.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class OrgAccountRepositoryImpl @Inject()(val config: Configuration) extends OrgAccountRepository with ConnectionSettings
+class DefaultOrgAccountRepository @Inject()(val config: Configuration) extends OrgAccountRepository with ConnectionSettings
 
 trait OrgAccountRepository extends DatabaseRepository with Logging {
 

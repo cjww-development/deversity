@@ -23,6 +23,7 @@ import models.formatters.MongoFormatting
 import models.{DeversityEnrolment, RegistrationCode}
 import play.api.libs.json.{Format, JsSuccess, Json}
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -30,8 +31,9 @@ import scala.concurrent.Future
 class EnrolmentControllerSpec extends ControllerSpec {
 
   val testController = new EnrolmentController {
-    override val enrolmentService = mockEnrolmentService
-    override val authConnector    = mockAuthConnector
+    override protected def controllerComponents = stubControllerComponents()
+    override val enrolmentService               = mockEnrolmentService
+    override val authConnector                  = mockAuthConnector
   }
 
   implicit val enrolmentFormatter: Format[DeversityEnrolment] = DeversityEnrolment.format(MongoFormatting)

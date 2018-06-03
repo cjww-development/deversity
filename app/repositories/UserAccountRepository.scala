@@ -35,7 +35,7 @@ import selectors.UserAccountSelectors._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserAccountRepositoryImpl @Inject()(val config: Configuration) extends UserAccountRepository with ConnectionSettings
+class DefaultUserAccountRepository @Inject()(val config: Configuration) extends UserAccountRepository with ConnectionSettings
 
 trait UserAccountRepository extends DatabaseRepository with Logging {
 

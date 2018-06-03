@@ -16,18 +16,15 @@
 package utils
 
 import com.cjwwdev.auth.models.CurrentUser
-import com.cjwwdev.security.encryption.DataSecurity
 import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.responses.ApiResponse
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlMatching, urlEqualTo, urlPathEqualTo, equalTo}
+import com.cjwwdev.security.encryption.DataSecurity
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlEqualTo}
 import models.formatters.MongoFormatting
 import models.{ClassRoom, OrgAccount, UserAccount}
 import org.joda.time.LocalDateTime
 import play.api.libs.json.{JsValue, Json, OFormat}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait IntegrationStubbing {
   self: IntegrationSpec =>

@@ -26,8 +26,8 @@ import selectors.UserAccountSelectors.teacherDetailsSelector
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UtilitiesServiceImpl @Inject()(val userAccountRepository: UserAccountRepository,
-                                     val orgAccountRepository: OrgAccountRepository) extends UtilitiesService
+class DefaultUtilitiesService @Inject()(val userAccountRepository: UserAccountRepository,
+                                        val orgAccountRepository: OrgAccountRepository) extends UtilitiesService
 
 trait UtilitiesService extends Logging {
   val userAccountRepository: UserAccountRepository

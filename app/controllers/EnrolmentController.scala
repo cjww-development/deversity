@@ -23,13 +23,14 @@ import common._
 import javax.inject.Inject
 import models.DeversityEnrolment
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.EnrolmentService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EnrolmentControllerImpl @Inject()(val authConnector: AuthConnector,
-                                        val enrolmentService: EnrolmentService) extends EnrolmentController
+class DefaultEnrolmentController @Inject()(val authConnector: AuthConnector,
+                                           val controllerComponents: ControllerComponents,
+                                           val enrolmentService: EnrolmentService) extends EnrolmentController
 
 trait EnrolmentController extends BackendController with Authorisation {
   val enrolmentService: EnrolmentService

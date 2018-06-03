@@ -1,2 +1,3 @@
 #Primary entry point for deversity backend
 ->          /deversity              app.Routes
+->          /                       health.Routes

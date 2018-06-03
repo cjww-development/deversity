@@ -27,7 +27,6 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 import repositories.{ClassRoomRepository, OrgAccountRepository, RegistrationCodeRepository, UserAccountRepository}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.Random
 

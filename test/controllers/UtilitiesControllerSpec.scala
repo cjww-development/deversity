@@ -21,14 +21,16 @@ import helpers.controllers.ControllerSpec
 import models.formatters.MongoFormatting
 import models.{OrgDetails, TeacherDetails}
 import play.api.mvc.{Request, Result}
+import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
 class UtilitiesControllerSpec extends ControllerSpec {
 
   val testController = new UtilitiesController {
-    override val utilitiesService    = mockUtilitiesService
-    override val authConnector       = mockAuthConnector
+    override protected def controllerComponents = stubControllerComponents()
+    override val utilitiesService               = mockUtilitiesService
+    override val authConnector                  = mockAuthConnector
 
     override protected def authorised(userId: String)(f: (CurrentUser) => Future[Result])(implicit request: Request[_]) = {
       f(testOrgCurrentUser)

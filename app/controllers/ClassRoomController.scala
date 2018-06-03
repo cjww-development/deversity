@@ -21,13 +21,14 @@ import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
 import common.{BackendController, EnrolmentsNotFoundException, MissingAccountException}
 import javax.inject.Inject
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ClassRoomService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ClassRoomControllerImpl @Inject()(val classRoomService: ClassRoomService,
-                                        val authConnector: AuthConnector) extends ClassRoomController
+class DefaultClassRoomController @Inject()(val classRoomService: ClassRoomService,
+                                           val controllerComponents: ControllerComponents,
+                                           val authConnector: AuthConnector) extends ClassRoomController
 
 trait ClassRoomController extends BackendController with Authorisation {
   val classRoomService: ClassRoomService

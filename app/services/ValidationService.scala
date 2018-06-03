@@ -29,9 +29,9 @@ import selectors.UserAccountSelectors.teacherSelector
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ValidationServiceImpl @Inject()(val userAccountRepository: UserAccountRepository,
-                                      val orgAccountRepository: OrgAccountRepository,
-                                      val registrationCodeRepository: RegistrationCodeRepository) extends ValidationService
+class DefaultValidationService @Inject()(val userAccountRepository: UserAccountRepository,
+                                         val orgAccountRepository: OrgAccountRepository,
+                                         val registrationCodeRepository: RegistrationCodeRepository) extends ValidationService
 
 trait ValidationService extends Logging {
   val userAccountRepository: UserAccountRepository

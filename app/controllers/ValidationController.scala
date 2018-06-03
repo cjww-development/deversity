@@ -16,16 +16,16 @@
 package controllers
 
 import javax.inject.Inject
-
 import com.cjwwdev.auth.backend.BaseAuth
 import com.cjwwdev.implicits.ImplicitDataSecurity._
 import common.BackendController
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ValidationService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ValidationControllerImpl @Inject()(val validationService: ValidationService) extends ValidationController
+class DefaultValidationController @Inject()(val validationService: ValidationService,
+                                            val controllerComponents: ControllerComponents) extends ValidationController
 
 trait ValidationController extends BackendController with BaseAuth {
   val validationService: ValidationService

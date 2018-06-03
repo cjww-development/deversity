@@ -26,8 +26,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Random
 
-class EnrolmentServiceImpl @Inject()(val userAccountRepository: UserAccountRepository,
-                                     val registrationCodeRepository: RegistrationCodeRepository) extends EnrolmentService
+class DefaultEnrolmentService @Inject()(val userAccountRepository: UserAccountRepository,
+                                        val registrationCodeRepository: RegistrationCodeRepository) extends EnrolmentService
 
 trait EnrolmentService {
   val userAccountRepository: UserAccountRepository
