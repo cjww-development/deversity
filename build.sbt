@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//import com.heroku.sbt.HerokuPlugin.autoImport.herokuAppName
+import com.heroku.sbt.HerokuPlugin.autoImport.herokuAppName
 import com.typesafe.config.ConfigFactory
 import sbt.Keys.scalaVersion
 import scoverage.ScoverageKeys
@@ -53,7 +53,7 @@ lazy val microservice = Project(appName, file("."))
     resolvers                                     ++= mavenResolvers,
     libraryDependencies                           ++= AppDependencies(),
     libraryDependencies                           +=  filters,
-    //herokuAppName              in Compile         :=  "cjww-deversity-backend",
+    herokuAppName              in Compile         :=  "cjww-deversity-backend",
     bintrayOrganization                           :=  Some("cjww-development"),
     bintrayReleaseOnPublish    in ThisBuild       :=  true,
     bintrayRepository                             :=  "releases",
