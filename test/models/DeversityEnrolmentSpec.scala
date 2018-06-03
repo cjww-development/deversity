@@ -15,13 +15,21 @@
  */
 package models
 
-import com.cjwwdev.testing.common.JsonValidation
 import models.formatters.{APIFormatting, BaseFormatting, MongoFormatting}
 import org.scalatestplus.play.PlaySpec
-import play.api.data.validation.ValidationError
-import play.api.libs.json.{JsError, JsPath, JsSuccess, Json}
+import play.api.libs.json._
 
-class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
+class DeversityEnrolmentSpec extends PlaySpec {
+  implicit class JsonValidationOps[T](jsResult: JsResult[T]) {
+    def mustHaveErrors(expectedErrors: Map[JsPath, Seq[JsonValidationError]]): Unit = jsResult match {
+      case JsSuccess(data, _) => fail(s"read should have failed and didn't - reads produced $data")
+      case JsError(errors)    => for((path, errs) <- errors) {
+        expectedErrors.keySet must   contain(path)
+        expectedErrors(path)  mustBe errs
+      }
+    }
+  }
+
   "DeversityEnrolment" should {
     "be read into json" when {
       "using the MongoFormatter" in {
@@ -110,7 +118,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val result = Json.fromJson[DeversityEnrolment](testJson)
 
         result.mustHaveErrors(Map(
-          JsPath() \ "role" -> Seq(ValidationError("Invalid role"))
+          JsPath() \ "role" -> Seq(JsonValidationError("Invalid role"))
         ))
       }
     }
@@ -132,7 +140,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val result = Json.fromJson[DeversityEnrolment](testJson)
 
         result.mustHaveErrors(Map(
-          JsPath()  -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
+          JsPath()  -> Seq(JsonValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
         ))
       }
 
@@ -152,7 +160,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val result = Json.fromJson[DeversityEnrolment](testJson)
 
         result.mustHaveErrors(Map(
-          JsPath()  -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
+          JsPath()  -> Seq(JsonValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
         ))
       }
 
@@ -171,7 +179,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val result = Json.fromJson[DeversityEnrolment](testJson)
 
         result.mustHaveErrors(Map(
-          JsPath() -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
+          JsPath() -> Seq(JsonValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
         ))
       }
 
@@ -191,7 +199,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val result = Json.fromJson[DeversityEnrolment](testJson)
 
         result.mustHaveErrors(Map(
-          JsPath() -> Seq(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
+          JsPath() -> Seq(JsonValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))
         ))
       }
 
@@ -211,7 +219,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val result = Json.fromJson[DeversityEnrolment](testJson)
 
         result.mustHaveErrors(Map(
-          JsPath()  -> Seq(ValidationError("Role was student but teacher wasn't defined"))
+          JsPath()  -> Seq(JsonValidationError("Role was student but teacher wasn't defined"))
         ))
       }
 
@@ -232,7 +240,7 @@ class DeversityEnrolmentSpec extends PlaySpec with JsonValidation {
         val result = Json.fromJson[DeversityEnrolment](testJson)
 
         result.mustHaveErrors(Map(
-          JsPath() -> Seq(ValidationError("Role was student but teacher wasn't defined"))
+          JsPath() -> Seq(JsonValidationError("Role was student but teacher wasn't defined"))
         ))
       }
     }

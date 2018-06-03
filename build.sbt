@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import com.heroku.sbt.HerokuPlugin.autoImport.herokuAppName
+//import com.heroku.sbt.HerokuPlugin.autoImport.herokuAppName
 import com.typesafe.config.ConfigFactory
 import sbt.Keys.scalaVersion
 import scoverage.ScoverageKeys
-import TestPhases.oneForkedJvmPerTest
 
 import scala.util.{Failure, Success, Try}
 
@@ -49,18 +48,17 @@ lazy val microservice = Project(appName, file("."))
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
     version                                       :=  btVersion,
-    scalaVersion                                  :=  "2.11.12",
+    scalaVersion                                  :=  "2.12.6",
     organization                                  :=  "com.cjww-dev.backends",
     resolvers                                     ++= mavenResolvers,
     libraryDependencies                           ++= AppDependencies(),
     libraryDependencies                           +=  filters,
-    herokuAppName              in Compile         :=  "cjww-deversity-backend",
+    //herokuAppName              in Compile         :=  "cjww-deversity-backend",
     bintrayOrganization                           :=  Some("cjww-development"),
     bintrayReleaseOnPublish    in ThisBuild       :=  true,
     bintrayRepository                             :=  "releases",
     bintrayOmitLicense                            :=  true,
     fork                       in IntegrationTest :=  false,
-    testGrouping               in IntegrationTest :=  oneForkedJvmPerTest((definedTests in IntegrationTest).value),
     unmanagedSourceDirectories in IntegrationTest :=  (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
     parallelExecution          in IntegrationTest :=  false
   )

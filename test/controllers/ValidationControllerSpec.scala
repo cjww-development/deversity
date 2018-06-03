@@ -18,6 +18,7 @@ package controllers
 import com.cjwwdev.security.encryption.DataSecurity
 import common.MissingAccountException
 import helpers.controllers.ControllerSpec
+import play.api.test.Helpers._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,7 +26,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ValidationControllerSpec extends ControllerSpec {
 
   val testController = new ValidationController {
-    override val validationService = mockValidationService
+    override protected def controllerComponents = stubControllerComponents()
+    override val validationService              = mockValidationService
   }
 
   val encryptedSchoolName = DataSecurity.encryptString("tSchoolName")

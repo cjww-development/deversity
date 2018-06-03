@@ -17,9 +17,7 @@
 package app
 
 import com.cjwwdev.security.encryption.DataSecurity
-import play.api.libs.json.Json
 import utils.{IntegrationSpec, IntegrationStubbing}
-import play.api.test.Helpers._
 
 class ValidationISpec extends IntegrationSpec with IntegrationStubbing {
 

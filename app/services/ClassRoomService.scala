@@ -28,8 +28,8 @@ import selectors.UserAccountSelectors.userIdSelector
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ClassRoomServiceImpl @Inject()(val classRoomRepository: ClassRoomRepository,
-                                     val userAccountRepository: UserAccountRepository) extends ClassRoomService
+class DefaultClassRoomService @Inject()(val classRoomRepository: ClassRoomRepository,
+                                        val userAccountRepository: UserAccountRepository) extends ClassRoomService
 
 trait ClassRoomService {
   val classRoomRepository: ClassRoomRepository

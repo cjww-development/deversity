@@ -16,44 +16,44 @@
 
 package common
 
-import com.cjwwdev.config.{ConfigurationLoader, ConfigurationLoaderImpl}
+import com.cjwwdev.config.{ConfigurationLoader, DefaultConfigurationLoader}
+import com.cjwwdev.health.{DefaultHealthController, HealthController}
 import com.cjwwdev.mongo.indexes.RepositoryIndexer
-import com.google.inject.AbstractModule
 import controllers._
+import play.api.{Configuration, Environment}
+import play.api.inject.{Binding, Module}
 import repositories._
 import services._
 
-class ServiceBindings extends AbstractModule {
-  override def configure(): Unit = {
-    bindOther()
-    bindRepositories()
-    bindServices()
-    bindControllers()
-  }
+class ServiceBindings extends Module {
 
-  private def bindControllers(): Unit = {
-    bind(classOf[EnrolmentController]).to(classOf[EnrolmentControllerImpl]).asEagerSingleton()
-    bind(classOf[UtilitiesController]).to(classOf[UtilitiesControllerImpl]).asEagerSingleton()
-    bind(classOf[ValidationController]).to(classOf[ValidationControllerImpl]).asEagerSingleton()
-    bind(classOf[ClassRoomController]).to(classOf[ClassRoomControllerImpl]).asEagerSingleton()
-  }
+  def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] =
+    bindOther() ++ bindRepositories() ++ bindServices() ++ bindControllers()
 
-  private def bindServices(): Unit = {
-    bind(classOf[EnrolmentService]).to(classOf[EnrolmentServiceImpl]).asEagerSingleton()
-    bind(classOf[UtilitiesService]).to(classOf[UtilitiesServiceImpl]).asEagerSingleton()
-    bind(classOf[ValidationService]).to(classOf[ValidationServiceImpl]).asEagerSingleton()
-    bind(classOf[ClassRoomService]).to(classOf[ClassRoomServiceImpl]).asEagerSingleton()
-  }
+  private def bindControllers(): Seq[Binding[_]] = Seq(
+    bind(classOf[EnrolmentController]).to(classOf[DefaultEnrolmentController]).eagerly(),
+    bind(classOf[UtilitiesController]).to(classOf[DefaultUtilitiesController]).eagerly(),
+    bind(classOf[ValidationController]).to(classOf[DefaultValidationController]).eagerly(),
+    bind(classOf[ClassRoomController]).to(classOf[DefaultClassRoomController]).eagerly(),
+    bind(classOf[HealthController]).to(classOf[DefaultHealthController]).eagerly()
+  )
 
-  private def bindRepositories(): Unit = {
-    bind(classOf[OrgAccountRepository]).to(classOf[OrgAccountRepositoryImpl]).asEagerSingleton()
-    bind(classOf[RegistrationCodeRepository]).to(classOf[RegistrationCodeRepositoryImpl]).asEagerSingleton()
-    bind(classOf[UserAccountRepository]).to(classOf[UserAccountRepositoryImpl]).asEagerSingleton()
-    bind(classOf[ClassRoomRepository]).to(classOf[ClassRoomRepositoryImpl]).asEagerSingleton()
-    bind(classOf[RepositoryIndexer]).to(classOf[DeversityIndexing]).asEagerSingleton()
-  }
+  private def bindServices(): Seq[Binding[_]] = Seq(
+    bind(classOf[EnrolmentService]).to(classOf[DefaultEnrolmentService]).eagerly(),
+    bind(classOf[UtilitiesService]).to(classOf[DefaultUtilitiesService]).eagerly(),
+    bind(classOf[ValidationService]).to(classOf[DefaultValidationService]).eagerly(),
+    bind(classOf[ClassRoomService]).to(classOf[DefaultClassRoomService]).eagerly()
+  )
 
-  def bindOther(): Unit = {
-    bind(classOf[ConfigurationLoader]).to(classOf[ConfigurationLoaderImpl]).asEagerSingleton()
-  }
+  private def bindRepositories(): Seq[Binding[_]] = Seq(
+    bind(classOf[OrgAccountRepository]).to(classOf[DefaultOrgAccountRepository]).eagerly(),
+    bind(classOf[RegistrationCodeRepository]).to(classOf[DefaultRegistrationCodeRepository]).eagerly(),
+    bind(classOf[UserAccountRepository]).to(classOf[DefaultUserAccountRepository]).eagerly(),
+    bind(classOf[ClassRoomRepository]).to(classOf[DefaultClassRoomRepository]).eagerly(),
+    bind(classOf[RepositoryIndexer]).to(classOf[DeversityIndexing]).eagerly()
+  )
+
+  private def bindOther(): Seq[Binding[_]] = Seq(
+    bind(classOf[ConfigurationLoader]).to(classOf[DefaultConfigurationLoader]).eagerly()
+  )
 }

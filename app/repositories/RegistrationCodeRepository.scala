@@ -31,7 +31,7 @@ import reactivemongo.play.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class RegistrationCodeRepositoryImpl @Inject()(val config: Configuration) extends RegistrationCodeRepository with ConnectionSettings
+class DefaultRegistrationCodeRepository @Inject()(val config: Configuration) extends RegistrationCodeRepository with ConnectionSettings
 
 trait RegistrationCodeRepository extends DatabaseRepository {
   override def indexes: Seq[Index] = Seq(

@@ -30,7 +30,7 @@ import selectors.ClassRoomSelectors._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ClassRoomRepositoryImpl @Inject()(val config: Configuration) extends ClassRoomRepository with ConnectionSettings
+class DefaultClassRoomRepository @Inject()(val config: Configuration) extends ClassRoomRepository with ConnectionSettings
 
 trait ClassRoomRepository extends DatabaseRepository with Logging {
 

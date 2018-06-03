@@ -16,23 +16,22 @@
 package models.formatters
 
 import com.cjwwdev.regex.RegexPack
-import play.api.data.validation.ValidationError
-import play.api.libs.json.Reads
+import play.api.libs.json.{JsonValidationError, Reads}
 
 object APIFormatting extends BaseFormatting with RegexPack {
-  override val emailReads: Reads[String] = Reads.StringReads.filter(ValidationError("Invalid email address"))(_.matches(emailRegex.regex))
+  override val emailReads: Reads[String] = Reads.StringReads.filter(JsonValidationError("Invalid email address"))(_.matches(emailRegex.regex))
 
-  override val firstNameReads: Reads[String] = Reads.StringReads.filter(ValidationError("Invalid first name"))(_.matches(firstNameRegex.regex))
-  override val lastNameReads: Reads[String]  = Reads.StringReads.filter(ValidationError("Invalid last name"))(_.matches(lastNameRegex.regex))
-  override val userNameReads: Reads[String]  = Reads.StringReads.filter(ValidationError("Invalid user name"))(_.matches(userNameRegex.regex))
+  override val firstNameReads: Reads[String] = Reads.StringReads.filter(JsonValidationError("Invalid first name"))(_.matches(firstNameRegex.regex))
+  override val lastNameReads: Reads[String]  = Reads.StringReads.filter(JsonValidationError("Invalid last name"))(_.matches(lastNameRegex.regex))
+  override val userNameReads: Reads[String]  = Reads.StringReads.filter(JsonValidationError("Invalid user name"))(_.matches(userNameRegex.regex))
 
   override val statusConfirmedReads: Reads[String] =
-    Reads.StringReads.filter(ValidationError("Invalid status"))(status => status.equals("pending") || status.equals("confirmed"))
+    Reads.StringReads.filter(JsonValidationError("Invalid status"))(status => status.equals("pending") || status.equals("confirmed"))
   override val roleReads: Reads[String] =
-    Reads.StringReads.filter(ValidationError("Invalid role"))(role => role.equals("teacher") || role.equals("student"))
+    Reads.StringReads.filter(JsonValidationError("Invalid role"))(role => role.equals("teacher") || role.equals("student"))
 
-  override val orgNameReads: Reads[String]     = Reads.StringReads.filter(ValidationError("Invalid org name"))(_.matches(orgNameRegex.regex))
-  override val initialsReads: Reads[String]    = Reads.StringReads.filter(ValidationError("Invalid initials"))(_.matches(initialsRegex.regex))
-  override val orgUserNameReads: Reads[String] = Reads.StringReads.filter(ValidationError("Invalid org user name"))(_.matches(userNameRegex.regex))
-  override val locationReads: Reads[String]    = Reads.StringReads.filter(ValidationError("Invalid location"))(_.matches(locationRegex.regex))
+  override val orgNameReads: Reads[String]     = Reads.StringReads.filter(JsonValidationError("Invalid org name"))(_.matches(orgNameRegex.regex))
+  override val initialsReads: Reads[String]    = Reads.StringReads.filter(JsonValidationError("Invalid initials"))(_.matches(initialsRegex.regex))
+  override val orgUserNameReads: Reads[String] = Reads.StringReads.filter(JsonValidationError("Invalid org user name"))(_.matches(userNameRegex.regex))
+  override val locationReads: Reads[String]    = Reads.StringReads.filter(JsonValidationError("Invalid location"))(_.matches(locationRegex.regex))
 }

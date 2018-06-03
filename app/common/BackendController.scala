@@ -20,8 +20,8 @@ import com.cjwwdev.identifiers.IdentifierValidation
 import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.responses.ApiResponse
 import models.formatters.{APIFormatting, BaseFormatting}
-import play.api.mvc.Controller
+import play.api.mvc.{ActionBuilder, AnyContent, BaseController, Request}
 
-trait BackendController extends Controller with RequestParsers with IdentifierValidation with ApiResponse {
+trait BackendController extends BaseController with RequestParsers with IdentifierValidation with ApiResponse {
   implicit val formatter: BaseFormatting = APIFormatting
 }

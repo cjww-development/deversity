@@ -15,16 +15,16 @@
  */
 package app
 
-import com.cjwwdev.security.encryption.DataSecurity
 import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.implicits.ImplicitJsValues._
+import com.cjwwdev.security.encryption.DataSecurity
 import models.ClassRoom
 import play.api.libs.json.Writes
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 import utils.{IntegrationSpec, IntegrationStubbing}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class ClassRoomAPIISpec extends IntegrationSpec with IntegrationStubbing {
 

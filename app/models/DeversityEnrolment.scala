@@ -16,7 +16,6 @@
 package models
 
 import models.formatters.BaseFormatting
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
@@ -35,9 +34,9 @@ object DeversityEnrolment {
     (__ \ "title").readNullable[String] and
     (__ \ "room").readNullable[String] and
     (__ \ "teacher").readNullable[String]
-  )(DeversityEnrolment.apply _).filterNot(ValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))(
+  )(DeversityEnrolment.apply _).filterNot(JsonValidationError("Role was teacher but either title or room were not defined or teacher was defined and shouldn't"))(
     enr => enr.role == "teacher" && (enr.title.isEmpty || enr.room.isEmpty || enr.teacher.isDefined)
-  ).filterNot(ValidationError("Role was student but teacher wasn't defined"))(
+  ).filterNot(JsonValidationError("Role was student but teacher wasn't defined"))(
     enr => enr.role == "student" && (enr.title.isDefined || enr.room.isDefined || enr.teacher.isEmpty)
   )
 
