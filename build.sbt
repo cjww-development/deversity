@@ -49,7 +49,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     version                                       :=  btVersion,
     scalaVersion                                  :=  "2.12.6",
-    organization                                  :=  "com.cjww-dev.backends",
+    organization                                  :=  "com.cjww-dev.apps",
     resolvers                                     ++= mavenResolvers,
     libraryDependencies                           ++= AppDependencies(),
     libraryDependencies                           +=  filters,
