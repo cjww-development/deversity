@@ -17,7 +17,10 @@ package controllers
 
 import com.cjwwdev.auth.backend.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
+import com.cjwwdev.config.ConfigurationLoader
+import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
 import common._
 import javax.inject.Inject
@@ -30,10 +33,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class DefaultEnrolmentController @Inject()(val authConnector: AuthConnector,
                                            val controllerComponents: ControllerComponents,
-                                           val enrolmentService: EnrolmentService) extends EnrolmentController
+                                           val config: ConfigurationLoader,
+                                           val enrolmentService: EnrolmentService) extends EnrolmentController {
+  override val appId: String = config.getServiceId(config.get[String]("appName"))
+}
 
 trait EnrolmentController extends BackendController with Authorisation {
   val enrolmentService: EnrolmentService
+
+  private val parsers = new RequestParsers {}
 
   def createDeversityId(userId: String): Action[String] = Action.async(parse.text) { implicit request =>
     validateAs(USER, userId) {
@@ -61,7 +69,7 @@ trait EnrolmentController extends BackendController with Authorisation {
     validateAs(USER, userId) {
       authorised(userId) { user =>
         enrolmentService.getEnrolment(user.id) map { enr =>
-          val (status, body) = enr.fold[(Int, JsValue)]((NO_CONTENT, ""))(enr => (OK, enr.encryptType))
+          val (status, body) = enr.fold[(Int, JsValue)]((NO_CONTENT, ""))(enr => (OK, enr.encrypt))
           withJsonResponseBody(status, body) { json =>
             status match {
               case OK         => Ok(json)
@@ -83,7 +91,7 @@ trait EnrolmentController extends BackendController with Authorisation {
   def updateDeversityEnrolment(userId: String): Action[String] = Action.async(parse.text) { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { user =>
-        withJsonBody[DeversityEnrolment](DeversityEnrolment.reads) { details =>
+        parsers.withJsonBody[DeversityEnrolment] { details =>
           enrolmentService.updateDeversityEnrolment(user.id, details) map { resp =>
             val (status, body) = resp match {
               case MongoSuccessUpdate => (OK, "Deversity enrolment has been updated")
@@ -124,7 +132,7 @@ trait EnrolmentController extends BackendController with Authorisation {
   def getRegistrationCode(userId: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(userId) { user =>
       enrolmentService.getRegistrationCode(user.id) map { regCode =>
-        withJsonResponseBody(OK, regCode.encryptType) { json =>
+        withJsonResponseBody(OK, regCode.encrypt) { json =>
           Ok(json)
         }
       } recover {

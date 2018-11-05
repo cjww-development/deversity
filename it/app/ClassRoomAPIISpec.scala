@@ -16,15 +16,14 @@
 package app
 
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import com.cjwwdev.implicits.ImplicitJsValues._
-import com.cjwwdev.security.encryption.DataSecurity
+import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
 import models.ClassRoom
 import play.api.libs.json.Writes
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 import utils.{IntegrationSpec, IntegrationStubbing}
-
-import scala.concurrent.ExecutionContext
 
 class ClassRoomAPIISpec extends IntegrationSpec with IntegrationStubbing {
 
@@ -38,7 +37,7 @@ class ClassRoomAPIISpec extends IntegrationSpec with IntegrationStubbing {
           .user.individualUser.hasDeversityId
           .user.individualUser.isAuthorised
 
-        val result = await(client(s"$testAppUrl/teacher/$testUserId/create-classroom").post(DataSecurity.encryptString("Test class name")))
+        val result = await(client(s"$testAppUrl/teacher/$testUserId/create-classroom").post("Test class name".encrypt))
 
         result.status mustBe CREATED
 
@@ -56,9 +55,15 @@ class ClassRoomAPIISpec extends IntegrationSpec with IntegrationStubbing {
         .user.individualUser.hasClasses
         .user.individualUser.isAuthorised
 
+      implicit val deObfuscator: DeObfuscator[List[ClassRoom]] = new DeObfuscator[List[ClassRoom]] {
+        override def decrypt(value: String): Either[List[ClassRoom], DecryptionError] = {
+          DeObfuscation.deObfuscate[List[ClassRoom]](value)
+        }
+      }
+
       val result = await(client(s"$testAppUrl/teacher/$testUserId/classrooms").get)
-      result.status                                                    mustBe OK
-      result.json.get[String]("body").decryptIntoType[List[ClassRoom]] mustBe List(ClassRoom(testClassId, testDeversityId, testDeversityId, "Test class name"))
+      result.status                                            mustBe OK
+      result.json.get[String]("body").decrypt[List[ClassRoom]] mustBe Left(List(ClassRoom(testClassId, testDeversityId, testDeversityId, "Test class name")))
     }
   }
 
@@ -70,9 +75,15 @@ class ClassRoomAPIISpec extends IntegrationSpec with IntegrationStubbing {
         .user.individualUser.hasClasses
         .user.individualUser.isAuthorised
 
+      implicit val deObfuscator: DeObfuscator[ClassRoom] = new DeObfuscator[ClassRoom] {
+        override def decrypt(value: String): Either[ClassRoom, DecryptionError] = {
+          DeObfuscation.deObfuscate[ClassRoom](value)
+        }
+      }
+
       val result = await(client(s"$testAppUrl/teacher/$testUserId/classroom/$testClassId").get)
-      result.status                                              mustBe OK
-      result.json.get[String]("body").decryptIntoType[ClassRoom] mustBe ClassRoom(testClassId, testDeversityId, testDeversityId, "Test class name")
+      result.status                                      mustBe OK
+      result.json.get[String]("body").decrypt[ClassRoom] mustBe Left(ClassRoom(testClassId, testDeversityId, testDeversityId, "Test class name"))
     }
   }
 

@@ -17,7 +17,9 @@ package controllers
 
 import com.cjwwdev.auth.backend.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
+import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.deobfuscation.DeObfuscation._
 import common.BackendController
 import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -27,7 +29,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class DefaultUtilitiesController @Inject()(val utilitiesService: UtilitiesService,
                                            val controllerComponents: ControllerComponents,
-                                           val authConnector: AuthConnector) extends UtilitiesController
+                                           val config: ConfigurationLoader,
+                                           val authConnector: AuthConnector) extends UtilitiesController {
+  override val appId: String = config.getServiceId(config.get[String]("appName"))
+}
 
 trait UtilitiesController extends BackendController with Authorisation {
   val utilitiesService: UtilitiesService
@@ -35,9 +40,9 @@ trait UtilitiesController extends BackendController with Authorisation {
   def getSchoolDetails(userId: String, schoolDevId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { _ =>
-        withEncryptedUrl(schoolDevId) { oDId =>
+        withEncryptedUrl[String](schoolDevId) { oDId =>
           utilitiesService.getSchoolDetails(oDId) map { details =>
-            withJsonResponseBody(OK, details.encryptType) { json =>
+            withJsonResponseBody(OK, details.encrypt) { json =>
               Ok(json)
             }
           } recover {
@@ -53,10 +58,10 @@ trait UtilitiesController extends BackendController with Authorisation {
   def getTeacherDetails(userId: String, teacherDevId: String, schoolDevId: String): Action[AnyContent] = Action.async { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { _ =>
-        withEncryptedUrl(teacherDevId) { tDevId =>
-          withEncryptedUrl(schoolDevId) { sDevId =>
+        withEncryptedUrl[String](teacherDevId) { tDevId =>
+          withEncryptedUrl[String](schoolDevId) { sDevId =>
             utilitiesService.getTeacherDetails(tDevId, sDevId) map { teacherDetails =>
-              withJsonResponseBody(OK, teacherDetails.encryptType) { json =>
+              withJsonResponseBody(OK, teacherDetails.encrypt) { json =>
                 Ok(json)
               }
             } recover {

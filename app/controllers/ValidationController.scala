@@ -17,7 +17,10 @@ package controllers
 
 import javax.inject.Inject
 import com.cjwwdev.auth.backend.BaseAuth
+import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.obfuscation.Obfuscation._
+import com.cjwwdev.security.deobfuscation.DeObfuscation._
 import common.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ValidationService
@@ -25,14 +28,17 @@ import services.ValidationService
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class DefaultValidationController @Inject()(val validationService: ValidationService,
-                                            val controllerComponents: ControllerComponents) extends ValidationController
+                                            val config: ConfigurationLoader,
+                                            val controllerComponents: ControllerComponents) extends ValidationController {
+  override val appId: String = config.getServiceId(config.get[String]("appName"))
+}
 
 trait ValidationController extends BackendController with BaseAuth {
   val validationService: ValidationService
 
   def validateSchool(regCode: String): Action[AnyContent] = Action.async { implicit request =>
     applicationVerification {
-      withEncryptedUrl(regCode) { decryptedRegCode =>
+      withEncryptedUrl[String](regCode) { decryptedRegCode =>
         validationService.validateSchool(decryptedRegCode) map { schoolDevId =>
           withJsonResponseBody(OK, schoolDevId.encrypt) { json =>
             Ok(json)
@@ -48,8 +54,8 @@ trait ValidationController extends BackendController with BaseAuth {
 
   def validateTeacher(regCode: String, schoolDevId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationVerification {
-      withEncryptedUrl(regCode) { decryptedRegCode =>
-        withEncryptedUrl(schoolDevId) { decryptedSchoolDevId =>
+      withEncryptedUrl[String](regCode) { decryptedRegCode =>
+        withEncryptedUrl[String](schoolDevId) { decryptedSchoolDevId =>
           validationService.validateTeacher(decryptedRegCode, decryptedSchoolDevId) map { teacherDevId =>
             withJsonResponseBody(OK, teacherDevId.encrypt) { json =>
               Ok(json)

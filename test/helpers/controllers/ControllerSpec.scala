@@ -47,7 +47,7 @@ trait ControllerSpec
   val testUserId    = generateTestSystemId(USER)
 
   val standardRequest = FakeRequest().withHeaders(
-    "cjww-headers" -> HeaderPackage("abda73f4-9d52-4bb8-b20d-b5fffd0cc130", testSessionId).encryptType,
+    "cjww-headers" -> HeaderPackage("abda73f4-9d52-4bb8-b20d-b5fffd0cc130", Some(testSessionId)).encrypt,
     CONTENT_TYPE   -> TEXT
   )
 }

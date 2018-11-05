@@ -61,7 +61,7 @@ trait IntegrationSpec
   val testCookieId = generateTestSystemId(SESSION)
 
   def client(url: String): WSRequest = ws.url(url).withHeaders(
-    "cjww-headers" -> HeaderPackage("abda73f4-9d52-4bb8-b20d-b5fffd0cc130", testCookieId).encryptType,
+    "cjww-headers" -> HeaderPackage("abda73f4-9d52-4bb8-b20d-b5fffd0cc130", Some(testCookieId)).encrypt,
     CONTENT_TYPE   -> TEXT
   )
 

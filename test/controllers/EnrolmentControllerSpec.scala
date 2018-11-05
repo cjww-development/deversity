@@ -16,7 +16,9 @@
 package controllers
 
 import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.security.encryption.DataSecurity
+import com.cjwwdev.security.obfuscation.Obfuscation._
+import com.cjwwdev.security.deobfuscation.DeObfuscation._
+import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
 import common.{AlreadyExistsException, MissingAccountException, RegistrationCodeExpiredException, RegistrationCodeNotFoundException}
 import helpers.controllers.ControllerSpec
 import models.formatters.MongoFormatting
@@ -34,6 +36,7 @@ class EnrolmentControllerSpec extends ControllerSpec {
     override protected def controllerComponents = stubControllerComponents()
     override val enrolmentService               = mockEnrolmentService
     override val authConnector                  = mockAuthConnector
+    override val appId                          = "testAppId"
   }
 
   implicit val enrolmentFormatter: Format[DeversityEnrolment] = DeversityEnrolment.format(MongoFormatting)
@@ -43,7 +46,7 @@ class EnrolmentControllerSpec extends ControllerSpec {
       "a deversity id has been created for the user" in {
         val request = standardRequest.withBody("")
 
-        mockCreateDeversityId(returned = Future.successful(DataSecurity.encryptString(testDeversityId)))
+        mockCreateDeversityId(returned = Future.successful(testDeversityId.encrypt))
 
         runActionWithAuth(testController.createDeversityId(testUserId), request, "individual") {
           status(_) mustBe OK
@@ -91,11 +94,15 @@ class EnrolmentControllerSpec extends ControllerSpec {
   "getDeversityEnrolment" should {
     "return an Ok" when {
       "the users enrolment has been fetched" in {
+        implicit val deObfuscator: DeObfuscator[DeversityEnrolment] = new DeObfuscator[DeversityEnrolment] {
+          override def decrypt(value: String): Either[DeversityEnrolment, DecryptionError] = DeObfuscation.deObfuscate(value)
+        }
+
         mockGetDeversityEnrolment(returned = Future(Some(testStudentEnrolment)))
 
         runActionWithAuth(testController.getDeversityEnrolment(testUserId), standardRequest, "individual") { result =>
           status(result) mustBe OK
-          contentAsJson(result).\("body").as[String].decryptIntoType[DeversityEnrolment] mustBe testStudentEnrolment
+          contentAsJson(result).\("body").as[String].decrypt[DeversityEnrolment] mustBe Left(testStudentEnrolment)
         }
       }
     }
@@ -124,7 +131,7 @@ class EnrolmentControllerSpec extends ControllerSpec {
   "updateDeversityEnrolment" should {
     "return an Ok" when {
       "the users deversity information has been updated" in {
-        val request: FakeRequest[String] = standardRequest.withBody(DataSecurity.encryptType(testStudentEnrolment))
+        val request: FakeRequest[String] = standardRequest.withBody(testStudentEnrolment.encrypt)
 
         mockUpdateDeversityEnrolment(success = true)
 
@@ -136,7 +143,7 @@ class EnrolmentControllerSpec extends ControllerSpec {
 
     "return an InternalServerError" when {
       "there was a problem updating the users deversity information" in {
-        val request: FakeRequest[String] = standardRequest.withBody(DataSecurity.encryptType(testStudentEnrolment))
+        val request: FakeRequest[String] = standardRequest.withBody(testStudentEnrolment.encrypt)
 
         mockUpdateDeversityEnrolment(success = false)
 
@@ -172,11 +179,17 @@ class EnrolmentControllerSpec extends ControllerSpec {
   "getRegistrationCode" should {
     "return an OK" when {
       "the registration code for the user has been found" in {
+        implicit val deObfuscator: DeObfuscator[RegistrationCode] = new DeObfuscator[RegistrationCode] {
+          override def decrypt(value: String): Either[RegistrationCode, DecryptionError] = {
+            DeObfuscation.deObfuscate[RegistrationCode](value)
+          }
+        }
+
         mockGetRegistrationCode(fetched = true)
 
         runActionWithAuth(testController.getRegistrationCode(testUserId), standardRequest, "individual") { res =>
-          status(res)                                                               mustBe OK
-          contentAsJson(res).\("body").as[String].decryptIntoType[RegistrationCode] mustBe testRegistrationCode
+          status(res)                                                       mustBe OK
+          contentAsJson(res).\("body").as[String].decrypt[RegistrationCode] mustBe Left(testRegistrationCode)
         }
       }
     }
@@ -198,8 +211,8 @@ class EnrolmentControllerSpec extends ControllerSpec {
         mockLookupRegistrationCode(regCode = Future(testUserId))
 
         runActionWithAuth(testController.lookupRegistrationCode(testUserId, "testRegCode"), standardRequest, "individual") { res =>
-          status(res)                  mustBe OK
-          contentAsJson(res).\("body").as[String].decrypt mustBe testUserId
+          status(res)                                             mustBe OK
+          contentAsJson(res).\("body").as[String].decrypt[String] mustBe Left(testUserId)
         }
       }
     }

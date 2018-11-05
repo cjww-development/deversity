@@ -15,6 +15,7 @@
  */
 package models
 
+import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import play.api.libs.json.{Json, OFormat}
 
 case class ClassRoom(classId: String,
@@ -24,4 +25,12 @@ case class ClassRoom(classId: String,
 
 object ClassRoom {
   implicit val format: OFormat[ClassRoom] = Json.format[ClassRoom]
+
+  implicit val listObfuscator: Obfuscator[List[ClassRoom]] = new Obfuscator[List[ClassRoom]] {
+    override def encrypt(value: List[ClassRoom]): String = Obfuscation.obfuscateJson(Json.toJson(value))
+  }
+
+  implicit val obfuscator: Obfuscator[ClassRoom] = new Obfuscator[ClassRoom] {
+    override def encrypt(value: ClassRoom): String = Obfuscation.obfuscateJson(Json.toJson(value))
+  }
 }

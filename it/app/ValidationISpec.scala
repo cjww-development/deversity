@@ -16,7 +16,8 @@
 
 package app
 
-import com.cjwwdev.security.encryption.DataSecurity
+import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import utils.{IntegrationSpec, IntegrationStubbing}
 
 class ValidationISpec extends IntegrationSpec with IntegrationStubbing {
@@ -24,9 +25,9 @@ class ValidationISpec extends IntegrationSpec with IntegrationStubbing {
   final val orgRegCode           = generateRegistrationCode
   final val userRegCode          = generateRegistrationCode
 
-  val encodedOrgRegCode    = DataSecurity.encryptString(orgRegCode)
-  val encodedUserRegCode   = DataSecurity.encryptString(userRegCode)
-  val encodedSchoolDevId   = DataSecurity.encryptString(testOrgAccount.deversityId)
+  val encodedOrgRegCode    = orgRegCode.encrypt
+  val encodedUserRegCode   = userRegCode.encrypt
+  val encodedSchoolDevId   = testOrgAccount.deversityId.encrypt
 
   s"/validation/school/:regCode" should {
     "return an OK" when {

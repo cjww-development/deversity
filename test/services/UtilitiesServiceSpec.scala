@@ -15,7 +15,6 @@
  */
 package services
 
-import common.MissingAccountException
 import helpers.other.AccountEnums
 import helpers.services.ServiceSpec
 import models.TeacherDetails

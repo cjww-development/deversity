@@ -15,6 +15,7 @@
  */
 package models
 
+import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import models.formatters.BaseFormatting
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
@@ -41,4 +42,8 @@ object TeacherDetails {
   )(unlift(TeacherDetails.unapply))
 
   implicit def format(implicit formatters: BaseFormatting): Format[TeacherDetails] = OFormat(reads(formatters), writes)
+
+  implicit val obfuscator: Obfuscator[TeacherDetails] = new Obfuscator[TeacherDetails] {
+    override def encrypt(value: TeacherDetails): String = Obfuscation.obfuscateJson(Json.toJson(value)(writes))
+  }
 }
