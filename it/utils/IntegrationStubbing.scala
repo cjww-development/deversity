@@ -15,9 +15,8 @@
  */
 package utils
 
-import com.cjwwdev.auth.models.CurrentUser
 import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.security.encryption.DataSecurity
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlEqualTo}
 import models.formatters.MongoFormatting
 import models.{ClassRoom, OrgAccount, UserAccount}
@@ -103,7 +102,7 @@ trait IntegrationStubbing {
           s"/auth/get-current-user/${generateTestSystemId(CONTEXT)}",
           "GET",
           OK,
-          DataSecurity.encryptType[CurrentUser](testCurrentUser)
+          testCurrentUser.encrypt
         ))
       )
       builder
@@ -148,7 +147,7 @@ trait IntegrationStubbing {
           s"/auth/get-current-user/${generateTestSystemId(CONTEXT)}",
           "GET",
           OK,
-          DataSecurity.encryptType[CurrentUser](testCurrentUser)
+          testCurrentUser.encrypt
         ))
       )
       builder

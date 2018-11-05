@@ -17,7 +17,9 @@ package controllers
 
 import com.cjwwdev.auth.backend.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
+import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.deobfuscation.DeObfuscation._
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
 import common.{BackendController, EnrolmentsNotFoundException, MissingAccountException}
 import javax.inject.Inject
@@ -28,7 +30,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class DefaultClassRoomController @Inject()(val classRoomService: ClassRoomService,
                                            val controllerComponents: ControllerComponents,
-                                           val authConnector: AuthConnector) extends ClassRoomController
+                                           val config: ConfigurationLoader,
+                                           val authConnector: AuthConnector) extends ClassRoomController {
+  override val appId: String = config.getServiceId(config.get[String]("appName"))
+}
 
 trait ClassRoomController extends BackendController with Authorisation {
   val classRoomService: ClassRoomService
@@ -36,7 +41,7 @@ trait ClassRoomController extends BackendController with Authorisation {
   def createNewClassRoom(userId: String): Action[String] = Action.async(parse.text) { implicit request =>
     validateAs(USER, userId) {
       authorised(userId) { user =>
-        withEncryptedUrl(request.body) { classRoom =>
+        withEncryptedUrl[String](request.body) { classRoom =>
           classRoomService.createClassRoom(classRoom, user.id) map {
             case MongoSuccessCreate => withJsonResponseBody(CREATED, s"Created class room $classRoom") { json =>
               Created(json)
@@ -54,7 +59,7 @@ trait ClassRoomController extends BackendController with Authorisation {
     validateAs(USER, userId) {
       authorised(userId) { user =>
         classRoomService.getClassesForTeachers(user.id) map { list =>
-          val (status, body) = if(list.nonEmpty) (OK, list.encryptType) else (NO_CONTENT, "No classes found the given user")
+          val (status, body) = if(list.nonEmpty) (OK, list.encrypt) else (NO_CONTENT, "No classes found the given user")
           withJsonResponseBody(status, body) { json =>
             status match {
               case OK         => Ok(json)
@@ -77,7 +82,7 @@ trait ClassRoomController extends BackendController with Authorisation {
     validateAs(USER, userId) {
       authorised(userId) { user =>
         classRoomService.getClassroom(user.id, classId) map { classRoom =>
-          val (status, body) = classRoom.fold((NOT_FOUND, s"No class room found for $classId"))(room => (OK, room.encryptType))
+          val (status, body) = classRoom.fold((NOT_FOUND, s"No class room found for $classId"))(room => (OK, room.encrypt))
           withJsonResponseBody(status, body) { json =>
             status match {
               case OK        => Ok(json)

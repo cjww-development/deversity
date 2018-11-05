@@ -15,7 +15,8 @@
  */
 package controllers
 
-import com.cjwwdev.security.encryption.DataSecurity
+import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import common.MissingAccountException
 import helpers.controllers.ControllerSpec
 import play.api.test.Helpers._
@@ -28,10 +29,11 @@ class ValidationControllerSpec extends ControllerSpec {
   val testController = new ValidationController {
     override protected def controllerComponents = stubControllerComponents()
     override val validationService              = mockValidationService
+    override val appId                          = "testAppId"
   }
 
-  val encryptedSchoolName = DataSecurity.encryptString("tSchoolName")
-  val encryptedUserName   = DataSecurity.encryptString(createTestUserName)
+  val encryptedSchoolName = "tSchoolName".encrypt
+  val encryptedUserName   = createTestUserName.encrypt
 
   "validateSchool" should {
     "return an ok" when {

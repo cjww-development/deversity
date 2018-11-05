@@ -1,3 +1,4 @@
 #Primary entry point for deversity backend
 ->          /deversity              app.Routes
 ->          /                       health.Routes
+->          /private                shuttering.Routes

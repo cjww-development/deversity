@@ -17,6 +17,8 @@ package controllers
 
 import com.cjwwdev.auth.models.CurrentUser
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.obfuscation.Obfuscation._
+import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
 import helpers.controllers.ControllerSpec
 import models.formatters.MongoFormatting
 import models.{OrgDetails, TeacherDetails}
@@ -24,6 +26,7 @@ import play.api.mvc.{Request, Result}
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 class UtilitiesControllerSpec extends ControllerSpec {
 
@@ -31,8 +34,9 @@ class UtilitiesControllerSpec extends ControllerSpec {
     override protected def controllerComponents = stubControllerComponents()
     override val utilitiesService               = mockUtilitiesService
     override val authConnector                  = mockAuthConnector
+    override val appId                          = "testAppId"
 
-    override protected def authorised(userId: String)(f: (CurrentUser) => Future[Result])(implicit request: Request[_]) = {
+    override protected def authorised(userId: String)(f: CurrentUser => Future[Result])(implicit request: Request[_]) = {
       f(testOrgCurrentUser)
     }
   }
@@ -40,11 +44,17 @@ class UtilitiesControllerSpec extends ControllerSpec {
   "getSchoolDetails" should {
     "return an OK" when {
       "school details have been found and encrypted" in {
+        implicit def deObfuscator(implicit tag: ClassTag[OrgDetails]): DeObfuscator[OrgDetails] = new DeObfuscator[OrgDetails] {
+          override def decrypt(value: String): Either[OrgDetails, DecryptionError] = {
+            DeObfuscation.deObfuscate(value)(OrgDetails.reads(MongoFormatting), tag)
+          }
+        }
+
         mockGetSchoolDetails(fetched = true)
 
         assertResult(testController.getSchoolDetails(testUserId, testOrgDevId.encrypt)(standardRequest)) { res =>
-          status(res) mustBe OK
-          contentAsJson(res).\("body").as[String].decryptIntoType(OrgDetails.reads(MongoFormatting)) mustBe testOrgDetails
+          status(res)                                                 mustBe OK
+          contentAsJson(res).\("body").as[String].decrypt[OrgDetails] mustBe Left(testOrgDetails)
         }
       }
     }
@@ -63,11 +73,17 @@ class UtilitiesControllerSpec extends ControllerSpec {
   "getTeacherDetails" should {
     "return an OK" when {
       "a teachers details has been found and encrypted" in {
+        implicit def deObfuscator(implicit tag: ClassTag[TeacherDetails]): DeObfuscator[TeacherDetails] = new DeObfuscator[TeacherDetails] {
+          override def decrypt(value: String): Either[TeacherDetails, DecryptionError] = {
+            DeObfuscation.deObfuscate(value)(TeacherDetails.reads(MongoFormatting), tag)
+          }
+        }
+
         mockGetTeacherDetails(fetched = true)
 
         assertResult(testController.getTeacherDetails(testUserId, testDeversityId.encrypt, testOrgDevId.encrypt)(standardRequest)) { res =>
           status(res) mustBe OK
-          contentAsJson(res).\("body").as[String].decryptIntoType(TeacherDetails.reads(MongoFormatting)) mustBe testTeacherDetails
+          contentAsJson(res).\("body").as[String].decrypt[TeacherDetails] mustBe Left(testTeacherDetails)
         }
       }
     }

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
+import com.cjwwdev.responses.ApiResponse
 import play.api.libs.json.{Format, Reads, Writes}
 
-package object controllers {
+package object controllers extends ApiResponse {
   val stringReads  = Reads.StringReads
   val stringWrites = Writes.StringWrites
   val stringFormat = Format(stringReads, stringWrites)

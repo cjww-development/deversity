@@ -17,6 +17,7 @@ package app
 
 import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.implicits.ImplicitJsValues._
+import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
 import models.formatters.MongoFormatting
 import models.{DeversityEnrolment, RegistrationCode}
 import utils.{IntegrationSpec, IntegrationStubbing}
@@ -71,9 +72,13 @@ class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing 
           .user.individualUser.isSetup
           .user.individualUser.isAuthorised
 
+        implicit val deObfuscator: DeObfuscator[DeversityEnrolment] = new DeObfuscator[DeversityEnrolment] {
+          override def decrypt(value: String): Either[DeversityEnrolment, DecryptionError] = DeObfuscation.deObfuscate(value)
+        }
+
         val result = await(client(s"$testAppUrl/user/$testUserId/enrolment").get)
-        result.status                                                       mustBe OK
-        result.json.get[String]("body").decryptIntoType[DeversityEnrolment] mustBe testUserAccount(AccountEnums.teacher).deversityDetails.get
+        result.status                                               mustBe OK
+        result.json.get[String]("body").decrypt[DeversityEnrolment] mustBe Left(testUserAccount(AccountEnums.teacher).deversityDetails.get)
       }
     }
 
@@ -109,9 +114,15 @@ class EnrolmentControllerISpec extends IntegrationSpec with IntegrationStubbing 
           .user.individualUser.hasRegistrationCode(testUserId, testRegCode)
           .user.individualUser.isAuthorised
 
+        implicit val deObfuscator: DeObfuscator[RegistrationCode] = new DeObfuscator[RegistrationCode] {
+          override def decrypt(value: String): Either[RegistrationCode, DecryptionError] = {
+            DeObfuscation.deObfuscate[RegistrationCode](value)
+          }
+        }
+
         val result = await(client(s"$testAppUrl/user/$testUserId/fetch-registration-code").get)
-        result.status                                                          mustBe OK
-        result.json.get[String]("body").decryptIntoType[RegistrationCode].code mustBe testRegCode
+        result.status                                                           mustBe OK
+        result.json.get[String]("body").decrypt[RegistrationCode].left.get.code mustBe testRegCode
       }
     }
   }

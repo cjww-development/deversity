@@ -18,6 +18,8 @@ package controllers
 
 import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import common.{EnrolmentsNotFoundException, MissingAccountException}
 import helpers.controllers.ControllerSpec
 import models.ClassRoom
@@ -33,6 +35,7 @@ class ClassRoomControllerSpec extends ControllerSpec {
     override protected def controllerComponents = stubControllerComponents()
     override val classRoomService               = mockClassRoomService
     override val authConnector                  = mockAuthConnector
+    override val appId: String                  = "testAppId"
   }
 
   "createNewClassRoom" should {
@@ -62,11 +65,15 @@ class ClassRoomControllerSpec extends ControllerSpec {
   "getClassesForTeacher" should {
     "return an Ok" when {
       "the classrooms have found for the user" in {
+        implicit val listDeObfuscator: DeObfuscator[List[ClassRoom]] = new DeObfuscator[List[ClassRoom]] {
+          override def decrypt(value: String): Either[List[ClassRoom], DecryptionError] = DeObfuscation.deObfuscate[List[ClassRoom]](value)
+        }
+
         mockGetClassesForTeacher(classList = Future(testClassList))
 
         runActionWithAuth(testController.getClassesForTeacher(testUserId), standardRequest, "individual") { res =>
-          status(res)                                           mustBe OK
-          contentAsJson(res).\("body").as[String].decryptIntoType[List[ClassRoom]] mustBe testClassList
+          status(res)                                                      mustBe OK
+          contentAsJson(res).\("body").as[String].decrypt[List[ClassRoom]] mustBe Left(testClassList)
         }
       }
     }
@@ -95,11 +102,15 @@ class ClassRoomControllerSpec extends ControllerSpec {
   "getClassRoom" should {
     "return an Ok" when {
       "the given class name and user id matches a classroom" in {
+        implicit val deObfuscator: DeObfuscator[ClassRoom] = new DeObfuscator[ClassRoom] {
+          override def decrypt(value: String): Either[ClassRoom, DecryptionError] = DeObfuscation.deObfuscate[ClassRoom](value)
+        }
+
         mockGetClassRoom(classRoom = Future(Some(testClassRoom)))
 
         runActionWithAuth(testController.getClassRoom(testUserId, generateTestSystemId("class")), standardRequest, "individual") { res =>
-          status(res)                                     mustBe OK
-          contentAsJson(res).\("body").as[String].decryptIntoType[ClassRoom] mustBe testClassRoom
+          status(res)                                                mustBe OK
+          contentAsJson(res).\("body").as[String].decrypt[ClassRoom] mustBe Left(testClassRoom)
         }
       }
     }

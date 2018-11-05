@@ -16,6 +16,7 @@
 
 package models
 
+import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import models.formatters.BaseFormatting
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
@@ -37,4 +38,8 @@ object OrgDetails {
     (__ \ "initials").write[String] and
     (__ \ "location").write[String]
   )(unlift(OrgDetails.unapply))
+
+  implicit val obfuscator: Obfuscator[OrgDetails] = new Obfuscator[OrgDetails] {
+    override def encrypt(value: OrgDetails): String = Obfuscation.obfuscateJson(Json.toJson(value)(writes))
+  }
 }

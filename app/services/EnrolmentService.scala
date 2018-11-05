@@ -16,6 +16,7 @@
 package services
 
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import com.cjwwdev.mongo.responses.MongoUpdatedResponse
 import javax.inject.Inject
 import models.{DeversityEnrolment, RegistrationCode}

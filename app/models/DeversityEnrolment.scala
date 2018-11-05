@@ -15,9 +15,13 @@
  */
 package models
 
+import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
+import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import models.formatters.BaseFormatting
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+
+import scala.reflect.ClassTag
 
 case class DeversityEnrolment(schoolDevId: String,
                               role: String,
@@ -47,4 +51,16 @@ object DeversityEnrolment {
     (__ \ "room").writeNullable[String] and
     (__ \ "teacher").writeNullable[String]
   )(unlift(DeversityEnrolment.unapply))
+
+  implicit val obfuscator: Obfuscator[DeversityEnrolment] = new Obfuscator[DeversityEnrolment] {
+    override def encrypt(value: DeversityEnrolment): String = Obfuscation.obfuscateJson(Json.toJson(value)(writes))
+  }
+
+  implicit def deObfuscator(implicit formatter: BaseFormatting, tag: ClassTag[DeversityEnrolment]): DeObfuscator[DeversityEnrolment] = {
+    new DeObfuscator[DeversityEnrolment] {
+      override def decrypt(value: String): Either[DeversityEnrolment, DecryptionError] = {
+        DeObfuscation.deObfuscate(value)(reads, tag)
+      }
+    }
+  }
 }
