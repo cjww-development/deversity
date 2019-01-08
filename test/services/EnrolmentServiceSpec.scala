@@ -16,14 +16,16 @@
 
 package services
 
+import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.mongo.responses.MongoSuccessUpdate
 import com.cjwwdev.security.obfuscation.Obfuscation._
-import com.cjwwdev.implicits.ImplicitDataSecurity._
 import common.UpdateFailedException
 import helpers.other.AccountEnums
 import helpers.services.ServiceSpec
 import models.RegistrationCode
 import org.joda.time.DateTime
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class EnrolmentServiceSpec extends ServiceSpec {
 

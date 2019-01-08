@@ -16,17 +16,16 @@
 package services
 
 import java.util.UUID
-import javax.inject.Inject
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse}
 import com.cjwwdev.implicits.ImplicitJsValues._
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse}
 import common.EnrolmentsNotFoundException
+import javax.inject.Inject
 import models.ClassRoom
 import repositories.{ClassRoomRepository, UserAccountRepository}
 import selectors.UserAccountSelectors.userIdSelector
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultClassRoomService @Inject()(val classRoomRepository: ClassRoomRepository,
                                         val userAccountRepository: UserAccountRepository) extends ClassRoomService
@@ -35,14 +34,14 @@ trait ClassRoomService {
   val classRoomRepository: ClassRoomRepository
   val userAccountRepository: UserAccountRepository
 
-  private def generateClassRoom(className: String, teacher: String, school: String): ClassRoom = ClassRoom(
+  private def generateClassRoom(className: String, teacher: String, school: String)(implicit ec: ExC): ClassRoom = ClassRoom(
     classId      = s"class-${UUID.randomUUID()}",
     schooldevId  = school,
     teacherDevId = teacher,
     name         = className
   )
 
-  def createClassRoom(className: String, userId: String): Future[MongoCreateResponse] = {
+  def createClassRoom(className: String, userId: String)(implicit ec: ExC): Future[MongoCreateResponse] = {
     for {
       acc        <- userAccountRepository.getUserBySelector(userIdSelector(userId))
       enrs       =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No enrolments for user ${acc.userId}"))
@@ -52,7 +51,7 @@ trait ClassRoomService {
     } yield resp
   }
 
-  def getClassesForTeachers(userId: String): Future[List[ClassRoom]] = {
+  def getClassesForTeachers(userId: String)(implicit ec: ExC): Future[List[ClassRoom]] = {
     for {
       acc  <- userAccountRepository.getUserBySelector(userIdSelector(userId))
       enrs =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No deversity details for user ${acc.userId}"))
@@ -60,7 +59,7 @@ trait ClassRoomService {
     } yield list
   }
 
-  def getClassroom(userId: String, classId: String): Future[Option[ClassRoom]] = {
+  def getClassroom(userId: String, classId: String)(implicit ec: ExC): Future[Option[ClassRoom]] = {
     for {
       acc  <- userAccountRepository.getUserBySelector(userIdSelector(userId))
       enrs =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No deversity details for user ${acc.userId}"))
@@ -68,7 +67,7 @@ trait ClassRoomService {
     } yield room
   }
 
-  def deleteClassRoom(userId: String, classId: String): Future[MongoDeleteResponse] = {
+  def deleteClassRoom(userId: String, classId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
     for {
       acc  <- userAccountRepository.getUserBySelector(userIdSelector(userId))
       enrs =  acc.enrolments.getOrElse(throw new EnrolmentsNotFoundException(s"No deversity details for user ${acc.userId}"))

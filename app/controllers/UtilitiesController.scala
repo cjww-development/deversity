@@ -25,12 +25,13 @@ import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.UtilitiesService
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class DefaultUtilitiesController @Inject()(val utilitiesService: UtilitiesService,
                                            val controllerComponents: ControllerComponents,
                                            val config: ConfigurationLoader,
-                                           val authConnector: AuthConnector) extends UtilitiesController {
+                                           val authConnector: AuthConnector,
+                                           implicit val ec: ExecutionContext) extends UtilitiesController {
   override val appId: String = config.getServiceId(config.get[String]("appName"))
 }
 

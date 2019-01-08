@@ -29,7 +29,6 @@ import org.scalatestplus.play.PlaySpec
 import services.EnrolmentService
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MockEnrolmentService extends BeforeAndAfterEach with MockitoSugar with Fixtures {
   self: PlaySpec =>
@@ -44,32 +43,32 @@ trait MockEnrolmentService extends BeforeAndAfterEach with MockitoSugar with Fix
   }
 
   def mockCreateDeversityId(returned: Future[String]): OngoingStubbing[Future[String]] = {
-    when(mockEnrolmentService.createDeversityId(ArgumentMatchers.any()))
+    when(mockEnrolmentService.createDeversityId(ArgumentMatchers.any())(ArgumentMatchers.any()))
       .thenReturn(returned)
   }
 
   def mockGetDeversityEnrolment(returned: Future[Option[DeversityEnrolment]]): OngoingStubbing[Future[Option[DeversityEnrolment]]] = {
-    when(mockEnrolmentService.getEnrolment(ArgumentMatchers.any()))
+    when(mockEnrolmentService.getEnrolment(ArgumentMatchers.any())(ArgumentMatchers.any()))
       .thenReturn(returned)
   }
 
   def mockUpdateDeversityEnrolment(success: Boolean): OngoingStubbing[Future[MongoUpdatedResponse]] = {
-    when(mockEnrolmentService.updateDeversityEnrolment(ArgumentMatchers.any(), ArgumentMatchers.any()))
-      .thenReturn(Future(if(success) MongoSuccessUpdate else MongoFailedUpdate))
+    when(mockEnrolmentService.updateDeversityEnrolment(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(success) MongoSuccessUpdate else MongoFailedUpdate))
   }
 
   def mockGenerateRegistrationCode(generated: Boolean): OngoingStubbing[Future[Boolean]] = {
-    when(mockEnrolmentService.generateRegistrationCode(ArgumentMatchers.any()))
-      .thenReturn(Future(generated))
+    when(mockEnrolmentService.generateRegistrationCode(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(generated))
   }
 
   def mockGetRegistrationCode(fetched: Boolean): OngoingStubbing[Future[RegistrationCode]] = {
-    when(mockEnrolmentService.getRegistrationCode(ArgumentMatchers.any()))
-      .thenReturn(if(fetched) Future(testRegistrationCode) else Future.failed(new MissingAccountException("")))
+    when(mockEnrolmentService.getRegistrationCode(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(if(fetched) Future.successful(testRegistrationCode) else Future.failed(new MissingAccountException("")))
   }
 
   def mockLookupRegistrationCode(regCode: Future[String]): OngoingStubbing[Future[String]] = {
-    when(mockEnrolmentService.lookupRegistrationCode(ArgumentMatchers.any()))
+    when(mockEnrolmentService.lookupRegistrationCode(ArgumentMatchers.any())(ArgumentMatchers.any()))
       .thenReturn(regCode)
   }
 }

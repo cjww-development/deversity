@@ -34,6 +34,7 @@ trait ControllerSpec
     with MockEnrolmentService
     with MockUtilitiesService
     with MockValidationService
+    with MockFeatureService
     with HeaderNames
     with Status
     with MimeTypes

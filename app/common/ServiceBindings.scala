@@ -19,10 +19,11 @@ package common
 import com.cjwwdev.config.{ConfigurationLoader, DefaultConfigurationLoader}
 import com.cjwwdev.featuremanagement.models.Features
 import com.cjwwdev.health.{DefaultHealthController, HealthController}
+import com.cjwwdev.logging.filters.{DefaultRequestLoggingFilter, RequestLoggingFilter}
 import com.cjwwdev.mongo.indexes.RepositoryIndexer
 import controllers._
-import play.api.{Configuration, Environment}
 import play.api.inject.{Binding, Module}
+import play.api.{Configuration, Environment}
 import repositories._
 import services._
 
@@ -56,6 +57,7 @@ class ServiceBindings extends Module {
 
   private def bindOther(): Seq[Binding[_]] = Seq(
     bind(classOf[ConfigurationLoader]).to(classOf[DefaultConfigurationLoader]).eagerly(),
-    bind(classOf[Features]).to(classOf[FeatureDef]).eagerly()
+    bind(classOf[Features]).to(classOf[FeatureDef]).eagerly(),
+    bind(classOf[RequestLoggingFilter]).to(classOf[DefaultRequestLoggingFilter]).eagerly()
   )
 }

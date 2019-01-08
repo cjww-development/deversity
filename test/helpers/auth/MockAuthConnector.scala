@@ -19,15 +19,14 @@ package helpers.auth
 import com.cjwwdev.auth.connectors.AuthConnector
 import com.cjwwdev.auth.models.CurrentUser
 import helpers.other.Fixtures
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MockAuthConnector extends BeforeAndAfterEach with MockitoSugar with Fixtures {
   self: PlaySpec =>
@@ -40,12 +39,12 @@ trait MockAuthConnector extends BeforeAndAfterEach with MockitoSugar with Fixtur
   }
 
   def mockGetIndCurrentUser(fetched: Boolean): OngoingStubbing[Future[Option[CurrentUser]]] = {
-    when(mockAuthConnector.getCurrentUser(ArgumentMatchers.any()))
-      .thenReturn(Future(if(fetched) Some(testCurrentUser) else None))
+    when(mockAuthConnector.getCurrentUser(ArgumentMatchers.any(), ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(fetched) Some(testCurrentUser) else None))
   }
 
   def mockGetOrgCurrentUser(fetched: Boolean): OngoingStubbing[Future[Option[CurrentUser]]] = {
-    when(mockAuthConnector.getCurrentUser(ArgumentMatchers.any()))
-      .thenReturn(Future(if(fetched) Some(testOrgCurrentUser) else None))
+    when(mockAuthConnector.getCurrentUser(ArgumentMatchers.any(), ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(fetched) Some(testOrgCurrentUser) else None))
   }
 }

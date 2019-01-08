@@ -17,13 +17,13 @@
 package helpers.services
 
 import helpers.other.Fixtures
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{reset, when}
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import services.ValidationService
-import org.mockito.Mockito.{reset, when}
-import org.mockito.ArgumentMatchers
-import org.mockito.stubbing.OngoingStubbing
 
 import scala.concurrent.Future
 
@@ -38,12 +38,12 @@ trait MockValidationService extends BeforeAndAfterEach with MockitoSugar with Fi
   }
 
   def mockValidateSchool(returned: Future[String]): OngoingStubbing[Future[String]] = {
-    when(mockValidationService.validateSchool(ArgumentMatchers.any()))
+    when(mockValidationService.validateSchool(ArgumentMatchers.any())(ArgumentMatchers.any()))
       .thenReturn(returned)
   }
 
   def mockValidateTeacher(returned: Future[String]): OngoingStubbing[Future[String]] = {
-    when(mockValidationService.validateTeacher(ArgumentMatchers.any(), ArgumentMatchers.any()))
+    when(mockValidationService.validateTeacher(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
       .thenReturn(returned)
   }
 }

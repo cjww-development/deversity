@@ -19,6 +19,8 @@ import helpers.other.AccountEnums
 import helpers.services.ServiceSpec
 import models.TeacherDetails
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class UtilitiesServiceSpec extends ServiceSpec {
 
   val testService = new UtilitiesService {

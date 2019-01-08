@@ -16,18 +16,16 @@
 
 package services
 
-import javax.inject.Inject
-
-import com.cjwwdev.logging.Logging
 import com.cjwwdev.implicits.ImplicitJsValues._
+import com.cjwwdev.logging.Logging
 import common.EnrolmentsNotFoundException
+import javax.inject.Inject
 import models.OrgAccount
 import repositories.{OrgAccountRepository, RegistrationCodeRepository, UserAccountRepository}
 import selectors.OrgAccountSelectors.{orgDevIdSelector, orgIdSelector}
 import selectors.UserAccountSelectors.teacherSelector
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultValidationService @Inject()(val userAccountRepository: UserAccountRepository,
                                          val orgAccountRepository: OrgAccountRepository,
@@ -38,14 +36,14 @@ trait ValidationService extends Logging {
   val orgAccountRepository: OrgAccountRepository
   val registrationCodeRepository: RegistrationCodeRepository
 
-  def validateSchool(regCode: String): Future[String] = {
+  def validateSchool(regCode: String)(implicit ec: ExC): Future[String] = {
     for {
       orgId  <- registrationCodeRepository.lookupUserIdByRegCode(regCode)
       school <- orgAccountRepository.getSchool(orgIdSelector(orgId))
     } yield school.deversityId
   }
 
-  def validateTeacher(regCode: String, schoolDevId: String): Future[String] = {
+  def validateTeacher(regCode: String, schoolDevId: String)(implicit ec: ExC): Future[String] = {
     for {
       teacherUserId <- registrationCodeRepository.lookupUserIdByRegCode(regCode)
       orgAccount    <- orgAccountRepository.getSchool(orgDevIdSelector(schoolDevId))

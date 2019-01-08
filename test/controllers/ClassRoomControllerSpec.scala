@@ -16,8 +16,8 @@
 
 package controllers
 
-import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import com.cjwwdev.implicits.ImplicitDataSecurity._
+import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
 import com.cjwwdev.security.obfuscation.Obfuscation._
 import common.{EnrolmentsNotFoundException, MissingAccountException}
@@ -26,12 +26,13 @@ import models.ClassRoom
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class ClassRoomControllerSpec extends ControllerSpec {
 
   val testController = new ClassRoomController {
+    override implicit val ec: ExecutionContext  = global
     override protected def controllerComponents = stubControllerComponents()
     override val classRoomService               = mockClassRoomService
     override val authConnector                  = mockAuthConnector

@@ -15,21 +15,25 @@
  */
 package controllers
 
+import com.cjwwdev.featuremanagement.models.Feature
+import com.cjwwdev.featuremanagement.services.FeatureService
 import com.cjwwdev.implicits.ImplicitDataSecurity._
 import com.cjwwdev.security.obfuscation.Obfuscation._
-import common.MissingAccountException
+import common.{Features, MissingAccountException}
 import helpers.controllers.ControllerSpec
 import play.api.test.Helpers._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationControllerSpec extends ControllerSpec {
 
   val testController = new ValidationController {
+    override implicit val ec: ExecutionContext  = global
     override protected def controllerComponents = stubControllerComponents()
     override val validationService              = mockValidationService
     override val appId                          = "testAppId"
+    override val featureService: FeatureService = mockFeatureService
   }
 
   val encryptedSchoolName = "tSchoolName".encrypt
@@ -38,6 +42,9 @@ class ValidationControllerSpec extends ControllerSpec {
   "validateSchool" should {
     "return an ok" when {
       "the school has been successfully validated" in {
+
+        mockGetState(feature = Feature(Features.applicationVerification, state = false))
+
         mockValidateSchool(returned = Future("testOrgDevId"))
 
         assertResult(testController.validateSchool(encryptedSchoolName)(standardRequest)) {
@@ -48,6 +55,8 @@ class ValidationControllerSpec extends ControllerSpec {
 
     "return a Not found" when {
       "the school has not been validated" in {
+        mockGetState(feature = Feature(Features.applicationVerification, state = false))
+
         mockValidateSchool(returned = Future.failed(new MissingAccountException("")))
 
         assertResult(testController.validateSchool(encryptedSchoolName)(standardRequest)) {
@@ -60,6 +69,8 @@ class ValidationControllerSpec extends ControllerSpec {
   "validateTeacher" should {
     "return an ok" when {
       "the teacher has been successfully validated" in {
+        mockGetState(feature = Feature(Features.applicationVerification, state = false))
+
         mockValidateTeacher(returned = Future(testDeversityId))
 
         assertResult(testController.validateTeacher(encryptedUserName, encryptedSchoolName)(standardRequest)) {
@@ -70,6 +81,8 @@ class ValidationControllerSpec extends ControllerSpec {
 
     "return a Not found" when {
       "the teacher has not been validated" in {
+        mockGetState(feature = Feature(Features.applicationVerification, state = false))
+
         mockValidateTeacher(returned = Future.failed(new MissingAccountException("")))
 
         assertResult(testController.validateTeacher(encryptedUserName, encryptedSchoolName)(standardRequest)) {

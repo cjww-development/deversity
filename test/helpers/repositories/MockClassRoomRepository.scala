@@ -19,16 +19,15 @@ package helpers.repositories
 import com.cjwwdev.mongo.responses._
 import helpers.other.Fixtures
 import models.ClassRoom
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{reset, when}
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.ClassRoomRepository
-import org.mockito.Mockito.{reset, when}
-import org.mockito.ArgumentMatchers
-import org.mockito.stubbing.OngoingStubbing
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MockClassRoomRepository extends BeforeAndAfterEach with MockitoSugar with Fixtures {
   self: PlaySpec =>
@@ -41,22 +40,22 @@ trait MockClassRoomRepository extends BeforeAndAfterEach with MockitoSugar with 
   }
 
   def mockCreateNewClassRoom(created: Boolean): OngoingStubbing[Future[MongoCreateResponse]] = {
-    when(mockClassRoomRepo.createNewClassRoom(ArgumentMatchers.any()))
-      .thenReturn(Future(if(created) MongoSuccessCreate else MongoFailedCreate))
+    when(mockClassRoomRepo.createNewClassRoom(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(created) MongoSuccessCreate else MongoFailedCreate))
   }
 
   def mockGetClassesForTeacher(fetched: Boolean): OngoingStubbing[Future[List[ClassRoom]]] = {
-    when(mockClassRoomRepo.getClassesForTeacher(ArgumentMatchers.any()))
-      .thenReturn(Future(if(fetched) testClassList else List.empty[ClassRoom]))
+    when(mockClassRoomRepo.getClassesForTeacher(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(fetched) testClassList else List.empty[ClassRoom]))
   }
 
   def mockGetClassRoom(fetched: Boolean): OngoingStubbing[Future[Option[ClassRoom]]] = {
-    when(mockClassRoomRepo.getClassroom(ArgumentMatchers.any(), ArgumentMatchers.any()))
-      .thenReturn(Future(if(fetched) Some(testClassRoom) else None))
+    when(mockClassRoomRepo.getClassroom(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(fetched) Some(testClassRoom) else None))
   }
 
   def mockDeleteClassRoom(deleted: Boolean): OngoingStubbing[Future[MongoDeleteResponse]] = {
-    when(mockClassRoomRepo.deleteClassRoom(ArgumentMatchers.any(), ArgumentMatchers.any()))
-      .thenReturn(Future(if(deleted) MongoSuccessDelete else MongoFailedDelete))
+    when(mockClassRoomRepo.deleteClassRoom(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(deleted) MongoSuccessDelete else MongoFailedDelete))
   }
 }

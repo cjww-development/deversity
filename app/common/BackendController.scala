@@ -23,22 +23,23 @@ import models.formatters.{APIFormatting, BaseFormatting}
 import play.api.libs.json.Json
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 trait BackendController extends BaseController with IdentifierValidation with ApiResponse {
   implicit val formatter: BaseFormatting = APIFormatting
+
+  implicit val ec: ExecutionContext
 
   def withEncryptedUrl[T](enc: String)(f: T => Future[Result])(implicit request: Request[_], deObfuscation: DeObfuscator[T]): Future[Result] = {
     deObfuscation.decrypt(enc).fold(
       data => f(data),
       err  => Try(Json.parse(err.message)).fold(
         _ => withFutureJsonResponseBody(BAD_REQUEST, s"Couldn't decrypt request body on ${request.path}") { json =>
-          Future(BadRequest(json))
+          Future.successful(BadRequest(json))
         },
         jsError => withFutureJsonResponseBody(BAD_REQUEST, jsError, "Decrypted json was missing a field") { json =>
-          Future(BadRequest(json))
+          Future.successful(BadRequest(json))
         }
       )
     )

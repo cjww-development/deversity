@@ -20,6 +20,8 @@ import common.EnrolmentsNotFoundException
 import helpers.other.AccountEnums
 import helpers.services.ServiceSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class ClassRoomServiceSpec extends ServiceSpec {
 
   val testUserId       = generateTestSystemId(USER)
