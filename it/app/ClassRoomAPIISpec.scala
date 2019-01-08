@@ -16,9 +16,9 @@
 package app
 
 import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.security.obfuscation.Obfuscation._
 import com.cjwwdev.implicits.ImplicitJsValues._
 import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import models.ClassRoom
 import play.api.libs.json.Writes
 import reactivemongo.bson.BSONDocument

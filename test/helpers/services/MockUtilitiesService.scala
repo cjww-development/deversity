@@ -19,16 +19,15 @@ package helpers.services
 import common.MissingAccountException
 import helpers.other.Fixtures
 import models.{OrgDetails, TeacherDetails}
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{reset, when}
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import services.UtilitiesService
-import org.mockito.Mockito.{reset, when}
-import org.mockito.ArgumentMatchers
-import org.mockito.stubbing.OngoingStubbing
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MockUtilitiesService extends BeforeAndAfterEach with MockitoSugar with Fixtures {
   self: PlaySpec =>
@@ -41,12 +40,12 @@ trait MockUtilitiesService extends BeforeAndAfterEach with MockitoSugar with Fix
   }
 
   def mockGetSchoolDetails(fetched: Boolean): OngoingStubbing[Future[OrgDetails]] = {
-    when(mockUtilitiesService.getSchoolDetails(ArgumentMatchers.any()))
-      .thenReturn(if(fetched) Future(testOrgDetails) else Future.failed(new MissingAccountException("")))
+    when(mockUtilitiesService.getSchoolDetails(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(if(fetched) Future.successful(testOrgDetails) else Future.failed(new MissingAccountException("")))
   }
 
   def mockGetTeacherDetails(fetched: Boolean): OngoingStubbing[Future[TeacherDetails]] = {
-    when(mockUtilitiesService.getTeacherDetails(ArgumentMatchers.any(), ArgumentMatchers.any()))
-      .thenReturn(if(fetched) Future(testTeacherDetails) else Future.failed(new MissingAccountException("")))
+    when(mockUtilitiesService.getTeacherDetails(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(if(fetched) Future.successful(testTeacherDetails) else Future.failed(new MissingAccountException("")))
   }
 }

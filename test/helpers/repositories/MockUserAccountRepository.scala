@@ -20,16 +20,15 @@ import com.cjwwdev.mongo.responses.{MongoSuccessUpdate, MongoUpdatedResponse}
 import common.UpdateFailedException
 import helpers.other.Fixtures
 import models.UserAccount
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{reset, when}
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import org.mockito.Mockito.{reset, when}
-import org.mockito.ArgumentMatchers
-import org.mockito.stubbing.OngoingStubbing
 import repositories.UserAccountRepository
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MockUserAccountRepository extends BeforeAndAfterEach with MockitoSugar with Fixtures{
   self: PlaySpec =>
@@ -42,17 +41,17 @@ trait MockUserAccountRepository extends BeforeAndAfterEach with MockitoSugar wit
   }
 
   def mockGetUserBySelector(returned: UserAccount): OngoingStubbing[Future[UserAccount]] = {
-    when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any()))
-      .thenReturn(Future(returned))
+    when(mockUserAccountRepo.getUserBySelector(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(returned))
   }
 
   def mockCreateDeversityId(deversityId: String): OngoingStubbing[Future[String]] = {
-    when(mockUserAccountRepo.createDeversityId(ArgumentMatchers.any()))
-      .thenReturn(Future(deversityId))
+    when(mockUserAccountRepo.createDeversityId(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(deversityId))
   }
 
   def mockUpdateDeversityEnrolment(updated: Boolean): OngoingStubbing[Future[MongoUpdatedResponse]] = {
-    when(mockUserAccountRepo.updateDeversityEnrolment(ArgumentMatchers.any(), ArgumentMatchers.any()))
-      .thenReturn(if(updated) Future(MongoSuccessUpdate) else Future.failed(new UpdateFailedException("")))
+    when(mockUserAccountRepo.updateDeversityEnrolment(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(if(updated) Future.successful(MongoSuccessUpdate) else Future.failed(new UpdateFailedException("")))
   }
 }

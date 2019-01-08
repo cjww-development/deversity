@@ -15,16 +15,14 @@
  */
 package services
 
-import javax.inject.Inject
-
 import com.cjwwdev.logging.Logging
+import javax.inject.Inject
 import models.{OrgAccount, OrgDetails, TeacherDetails, UserAccount}
 import repositories.{OrgAccountRepository, UserAccountRepository}
-import selectors.OrgAccountSelectors.{orgDevIdSelector, orgIdSelector}
+import selectors.OrgAccountSelectors.orgDevIdSelector
 import selectors.UserAccountSelectors.teacherDetailsSelector
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultUtilitiesService @Inject()(val userAccountRepository: UserAccountRepository,
                                         val orgAccountRepository: OrgAccountRepository) extends UtilitiesService
@@ -33,11 +31,11 @@ trait UtilitiesService extends Logging {
   val userAccountRepository: UserAccountRepository
   val orgAccountRepository: OrgAccountRepository
 
-  def getSchoolDetails(orgUserName: String): Future[OrgDetails] = {
+  def getSchoolDetails(orgUserName: String)(implicit ec: ExC): Future[OrgDetails] = {
     orgAccountRepository.getSchool(orgDevIdSelector(orgUserName)) map accountToDetails
   }
 
-  def getTeacherDetails(userName: String, schoolName: String): Future[TeacherDetails] = {
+  def getTeacherDetails(userName: String, schoolName: String)(implicit ec: ExC): Future[TeacherDetails] = {
     userAccountRepository.getUserBySelector(teacherDetailsSelector(userName, schoolName)) map accountToTeacherDetails
   }
 

@@ -18,8 +18,8 @@ package models
 import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
 import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import models.formatters.BaseFormatting
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 import scala.reflect.ClassTag
 

@@ -21,6 +21,7 @@ import helpers.services.ServiceSpec
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.when
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class ValidationServiceSpec extends ServiceSpec {
@@ -51,7 +52,7 @@ class ValidationServiceSpec extends ServiceSpec {
     "return throw a RegistrationCodeNotFoundException" when {
       "a school has not been validated" in {
 
-        when(mockRegCodeRepo.lookupUserIdByRegCode(ArgumentMatchers.any()))
+        when(mockRegCodeRepo.lookupUserIdByRegCode(ArgumentMatchers.any())(ArgumentMatchers.any()))
           .thenReturn(Future.failed(new RegistrationCodeNotFoundException("")))
 
         intercept[RegistrationCodeNotFoundException](await(testService.validateSchool("tSchoolName")))
@@ -68,7 +69,7 @@ class ValidationServiceSpec extends ServiceSpec {
         mockLookupUserIdByRegCode(userId = testOrgAccount.deversityId)
 
         mockGetSchool(fetched = true)
-        when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
+        when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any())(ArgumentMatchers.any()))
           .thenReturn(Future.successful(testOrgAccount))
 
         mockGetUserBySelector(returned = testTeacherAcc)

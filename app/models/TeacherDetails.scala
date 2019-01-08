@@ -17,8 +17,8 @@ package models
 
 import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import models.formatters.BaseFormatting
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 case class TeacherDetails(userId: String,
                           title: String,

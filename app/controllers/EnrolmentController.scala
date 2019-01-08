@@ -18,23 +18,24 @@ package controllers
 import com.cjwwdev.auth.backend.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
 import com.cjwwdev.config.ConfigurationLoader
-import com.cjwwdev.request.RequestParsers
 import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.security.obfuscation.Obfuscation._
 import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
+import com.cjwwdev.request.RequestParsers
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import common._
 import javax.inject.Inject
 import models.DeversityEnrolment
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.JsValue
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.EnrolmentService
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class DefaultEnrolmentController @Inject()(val authConnector: AuthConnector,
                                            val controllerComponents: ControllerComponents,
                                            val config: ConfigurationLoader,
-                                           val enrolmentService: EnrolmentService) extends EnrolmentController {
+                                           val enrolmentService: EnrolmentService,
+                                           implicit val ec: ExecutionContext) extends EnrolmentController {
   override val appId: String = config.getServiceId(config.get[String]("appName"))
 }
 

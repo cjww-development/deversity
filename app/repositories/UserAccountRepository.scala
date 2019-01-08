@@ -16,24 +16,22 @@
 package repositories
 
 import java.util.UUID
-import javax.inject.Inject
 
 import com.cjwwdev.logging.Logging
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
 import com.cjwwdev.mongo.responses.{MongoSuccessUpdate, MongoUpdatedResponse}
 import common.{AlreadyExistsException, MissingAccountException, UpdateFailedException}
-import models.formatters.{BaseFormatting, MongoFormatting}
+import javax.inject.Inject
 import models.{DeversityEnrolment, UserAccount}
 import play.api.Configuration
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsObject, Json}
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 import selectors.UserAccountSelectors._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultUserAccountRepository @Inject()(val config: Configuration) extends UserAccountRepository with ConnectionSettings
 
@@ -50,7 +48,7 @@ trait UserAccountRepository extends DatabaseRepository with Logging {
     )
   )
 
-  def getUserBySelector(selector: BSONDocument): Future[UserAccount] = {
+  def getUserBySelector(selector: BSONDocument)(implicit ec: ExC): Future[UserAccount] = {
     for {
       col          <- collection
       (key, value) =  getSelectorHead(selector)
@@ -61,7 +59,7 @@ trait UserAccountRepository extends DatabaseRepository with Logging {
     }
   }
 
-  def createDeversityId(userId: String): Future[String] = {
+  def createDeversityId(userId: String)(implicit ec: ExC): Future[String] = {
     val deversityId   = generateDeversityId
     val findQuery     = BSONDocument("userId" -> userId, "enrolments.deversityId" -> BSONDocument("$exists" -> true))
     val enrolment     = BSONDocument("$set" -> BSONDocument("enrolments.deversityId" -> deversityId))
@@ -83,7 +81,7 @@ trait UserAccountRepository extends DatabaseRepository with Logging {
     } yield updated
   }
 
-  def updateDeversityEnrolment(userId: String, deversityEnrolment: DeversityEnrolment): Future[MongoUpdatedResponse] = {
+  def updateDeversityEnrolment(userId: String, deversityEnrolment: DeversityEnrolment)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val enrolmentUpdate = BSONDocument("$set" -> BSONDocument("deversityDetails" -> Json.toJson(deversityEnrolment).as[JsObject]))
     collection flatMap {
       _.update(userIdSelector(userId), enrolmentUpdate) map { wr =>

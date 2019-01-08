@@ -19,22 +19,24 @@ package helpers.repositories
 import com.cjwwdev.testing.unit.helpers.FakeMongoResults
 import helpers.other.Fixtures
 import models.RegistrationCode
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{reset, when}
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import repositories.RegistrationCodeRepository
-import org.mockito.Mockito.{reset, when}
-import org.mockito.ArgumentMatchers
-import org.mockito.stubbing.OngoingStubbing
 import reactivemongo.api.commands.UpdateWriteResult
+import repositories.RegistrationCodeRepository
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MockRegCodeRepository extends BeforeAndAfterEach with MockitoSugar with Fixtures with FakeMongoResults {
   self: PlaySpec =>
 
   val mockRegCodeRepo = mock[RegistrationCodeRepository]
+
+  private val successUWR = fakeSuccessUpdateWriteResult
+  private val failedUWR  = fakeFailedUpdateWriteResult
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()
@@ -42,17 +44,17 @@ trait MockRegCodeRepository extends BeforeAndAfterEach with MockitoSugar with Fi
   }
 
   def mockGetRegistrationCode(regCode: RegistrationCode): OngoingStubbing[Future[RegistrationCode]] = {
-    when(mockRegCodeRepo.getRegistrationCode(ArgumentMatchers.any(), ArgumentMatchers.any()))
+    when(mockRegCodeRepo.getRegistrationCode(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(regCode))
   }
 
   def mockGenerateRegistrationCode(generated: Boolean): OngoingStubbing[Future[UpdateWriteResult]] = {
-    when(mockRegCodeRepo.generateRegistrationCode(ArgumentMatchers.any(), ArgumentMatchers.any()))
-      .thenReturn(if(generated) Future(fakeSuccessUpdateWriteResult) else Future(fakeFailedUpdateWriteResult))
+    when(mockRegCodeRepo.generateRegistrationCode(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(generated) successUWR else failedUWR ))
   }
 
   def mockLookupUserIdByRegCode(userId: String): OngoingStubbing[Future[String]] = {
-    when(mockRegCodeRepo.lookupUserIdByRegCode(ArgumentMatchers.any()))
-      .thenReturn(Future(userId))
+    when(mockRegCodeRepo.lookupUserIdByRegCode(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(userId))
   }
 }

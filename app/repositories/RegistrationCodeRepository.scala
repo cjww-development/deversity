@@ -15,11 +15,10 @@
  */
 package repositories
 
-import javax.inject.Inject
-
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
 import common.{RegistrationCodeExpiredException, RegistrationCodeNotFoundException}
+import javax.inject.Inject
 import models.RegistrationCode
 import org.joda.time.{DateTime, Interval}
 import play.api.Configuration
@@ -28,8 +27,7 @@ import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultRegistrationCodeRepository @Inject()(val config: Configuration) extends RegistrationCodeRepository with ConnectionSettings
 
@@ -60,7 +58,7 @@ trait RegistrationCodeRepository extends DatabaseRepository {
 
   private def getInterval(time: DateTime): Long = new Interval(time, DateTime.now).toDuration.getStandardMinutes
 
-  def getRegistrationCode(userId: String, regCode: String): Future[RegistrationCode] = {
+  def getRegistrationCode(userId: String, regCode: String)(implicit ec: ExC): Future[RegistrationCode] = {
     for {
       col           <- collection
       regCodeRecord <- col.find(BSONDocument("identifier" -> userId)).one[RegistrationCode]
@@ -73,7 +71,7 @@ trait RegistrationCodeRepository extends DatabaseRepository {
     } yield regCode
   }
 
-  def generateRegistrationCode(userId: String, regCode: String): Future[UpdateWriteResult] = {
+  def generateRegistrationCode(userId: String, regCode: String)(implicit ec: ExC): Future[UpdateWriteResult] = {
     for {
       col         <- collection
       updatedCode =  buildUpdate(regCode)
@@ -81,7 +79,7 @@ trait RegistrationCodeRepository extends DatabaseRepository {
     } yield update
   }
 
-  def lookupUserIdByRegCode(code: String): Future[String] = {
+  def lookupUserIdByRegCode(code: String)(implicit ec: ExC): Future[String] = {
     for {
       col        <- collection
       regCode    <- col.find(BSONDocument("code" -> code)).one[RegistrationCode]

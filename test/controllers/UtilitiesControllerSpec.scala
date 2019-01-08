@@ -17,26 +17,28 @@ package controllers
 
 import com.cjwwdev.auth.models.CurrentUser
 import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.security.obfuscation.Obfuscation._
 import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator, DecryptionError}
+import com.cjwwdev.security.obfuscation.Obfuscation._
 import helpers.controllers.ControllerSpec
 import models.formatters.MongoFormatting
 import models.{OrgDetails, TeacherDetails}
 import play.api.mvc.{Request, Result}
 import play.api.test.Helpers._
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
 class UtilitiesControllerSpec extends ControllerSpec {
 
   val testController = new UtilitiesController {
+    override implicit val ec: ExecutionContext  = Implicits.global
     override protected def controllerComponents = stubControllerComponents()
     override val utilitiesService               = mockUtilitiesService
     override val authConnector                  = mockAuthConnector
     override val appId                          = "testAppId"
 
-    override protected def authorised(userId: String)(f: CurrentUser => Future[Result])(implicit request: Request[_]) = {
+    override def authorised(id: String)(f: CurrentUser => Future[Result])(implicit request: Request[_], ec: ExecutionContext): Future[Result] = {
       f(testOrgCurrentUser)
     }
   }

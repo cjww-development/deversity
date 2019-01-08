@@ -13,27 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package controllers
 
-import javax.inject.Inject
 import com.cjwwdev.auth.backend.BaseAuth
 import com.cjwwdev.config.ConfigurationLoader
+import com.cjwwdev.featuremanagement.services.FeatureService
 import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.security.obfuscation.Obfuscation._
 import com.cjwwdev.security.deobfuscation.DeObfuscation._
-import common.BackendController
+import com.cjwwdev.security.obfuscation.Obfuscation._
+import common.{AppVerification, BackendController}
+import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ValidationService
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class DefaultValidationController @Inject()(val validationService: ValidationService,
                                             val config: ConfigurationLoader,
-                                            val controllerComponents: ControllerComponents) extends ValidationController {
+                                            val featureService: FeatureService,
+                                            val controllerComponents: ControllerComponents,
+                                            implicit val ec: ExecutionContext) extends ValidationController {
   override val appId: String = config.getServiceId(config.get[String]("appName"))
 }
 
-trait ValidationController extends BackendController with BaseAuth {
+trait ValidationController extends BackendController with BaseAuth with AppVerification {
   val validationService: ValidationService
 
   def validateSchool(regCode: String): Action[AnyContent] = Action.async { implicit request =>

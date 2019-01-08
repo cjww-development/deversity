@@ -20,10 +20,13 @@ import com.cjwwdev.mongo.indexes.RepositoryIndexer
 import javax.inject.Inject
 import repositories.{ClassRoomRepository, OrgAccountRepository, RegistrationCodeRepository, UserAccountRepository}
 
-class DeversityIndexing @Inject()(classRoomRepository: ClassRoomRepository,
-                                  orgAccountRepository: OrgAccountRepository,
-                                  registrationCodeRepository: RegistrationCodeRepository,
-                                  userAccountRepository: UserAccountRepository) extends RepositoryIndexer {
+import scala.concurrent.ExecutionContext
+
+class DeversityIndexing @Inject()(val classRoomRepository: ClassRoomRepository,
+                                  val orgAccountRepository: OrgAccountRepository,
+                                  val registrationCodeRepository: RegistrationCodeRepository,
+                                  val userAccountRepository: UserAccountRepository,
+                                  implicit val ec: ExecutionContext) extends RepositoryIndexer {
   override val repositories = Seq(
     classRoomRepository,
     orgAccountRepository,

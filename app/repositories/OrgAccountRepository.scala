@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package repositories
 
-import javax.inject.Inject
-
-import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.logging.Logging
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
 import common.MissingAccountException
+import javax.inject.Inject
 import models.OrgAccount
 import play.api.Configuration
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultOrgAccountRepository @Inject()(val config: Configuration) extends OrgAccountRepository with ConnectionSettings
 
@@ -44,7 +42,7 @@ trait OrgAccountRepository extends DatabaseRepository with Logging {
     )
   )
 
-  def getSchool(selector: BSONDocument): Future[OrgAccount] = {
+  def getSchool(selector: BSONDocument)(implicit ec: ExC): Future[OrgAccount] = {
     for {
       col          <- collection
       (key, value) =  getSelectorHead(selector)

@@ -19,19 +19,20 @@ import com.cjwwdev.auth.backend.Authorisation
 import com.cjwwdev.auth.connectors.AuthConnector
 import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.security.deobfuscation.DeObfuscation._
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
+import com.cjwwdev.security.deobfuscation.DeObfuscation._
 import common.{BackendController, EnrolmentsNotFoundException, MissingAccountException}
 import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ClassRoomService
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class DefaultClassRoomController @Inject()(val classRoomService: ClassRoomService,
                                            val controllerComponents: ControllerComponents,
                                            val config: ConfigurationLoader,
-                                           val authConnector: AuthConnector) extends ClassRoomController {
+                                           val authConnector: AuthConnector,
+                                           implicit val ec: ExecutionContext) extends ClassRoomController {
   override val appId: String = config.getServiceId(config.get[String]("appName"))
 }
 

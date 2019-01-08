@@ -19,16 +19,15 @@ package helpers.repositories
 import common.MissingAccountException
 import helpers.other.Fixtures
 import models.OrgAccount
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{reset, when}
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.OrgAccountRepository
-import org.mockito.Mockito.{reset, when}
-import org.mockito.ArgumentMatchers
-import org.mockito.stubbing.OngoingStubbing
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MockOrgAccountRepository extends BeforeAndAfterEach with MockitoSugar with Fixtures {
   self: PlaySpec =>
@@ -41,7 +40,7 @@ trait MockOrgAccountRepository extends BeforeAndAfterEach with MockitoSugar with
   }
 
   def mockGetSchool(fetched: Boolean): OngoingStubbing[Future[OrgAccount]] = {
-    when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any()))
-      .thenReturn(if(fetched) Future(testOrgAccount) else Future.failed(new MissingAccountException("")))
+    when(mockOrgAccountRepo.getSchool(ArgumentMatchers.any())(ArgumentMatchers.any()))
+      .thenReturn(if(fetched) Future.successful(testOrgAccount) else Future.failed(new MissingAccountException("")))
   }
 }

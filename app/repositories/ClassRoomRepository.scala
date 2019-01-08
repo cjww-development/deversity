@@ -15,20 +15,18 @@
  */
 package repositories
 
-import javax.inject.Inject
-
 import com.cjwwdev.logging.Logging
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
 import com.cjwwdev.mongo.responses._
+import javax.inject.Inject
 import models.ClassRoom
 import play.api.Configuration
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json._
 import selectors.ClassRoomSelectors._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultClassRoomRepository @Inject()(val config: Configuration) extends ClassRoomRepository with ConnectionSettings
 
@@ -43,7 +41,7 @@ trait ClassRoomRepository extends DatabaseRepository with Logging {
     )
   )
 
-  def createNewClassRoom(classRoom: ClassRoom): Future[MongoCreateResponse] = {
+  def createNewClassRoom(classRoom: ClassRoom)(implicit ec: ExC): Future[MongoCreateResponse] = {
     for {
       col <- collection
       wr  <- col.insert[ClassRoom](classRoom)
@@ -55,21 +53,21 @@ trait ClassRoomRepository extends DatabaseRepository with Logging {
     }
   }
 
-  def getClassesForTeacher(teacherDevId: String): Future[List[ClassRoom]] = {
+  def getClassesForTeacher(teacherDevId: String)(implicit ec: ExC): Future[List[ClassRoom]] = {
     for {
       col  <- collection
       list <- col.find(teacherDevIdSelector(teacherDevId)).cursor[ClassRoom]().collect[List]()
     } yield list
   }
 
-  def getClassroom(classId: String, teacherId: String): Future[Option[ClassRoom]] = {
+  def getClassroom(classId: String, teacherId: String)(implicit ec: ExC): Future[Option[ClassRoom]] = {
     for {
       col  <- collection
       room <- col.find(classRoomSelector(classId, teacherId)).one[ClassRoom]
     } yield room
   }
 
-  def deleteClassRoom(classId: String, teacherId: String): Future[MongoDeleteResponse] = {
+  def deleteClassRoom(classId: String, teacherId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
     for {
       col <- collection
       wr  <- col.remove(classRoomSelector(classId, teacherId))
