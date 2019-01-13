@@ -66,8 +66,8 @@ trait IntegrationSpec
   )
 
   private def afterITest(): Unit = {
-    userAccountRepository.collection.flatMap(_.remove(BSONDocument("userName" -> "tUserName")))
-    orgAccountRepository.collection.flatMap(_.remove(BSONDocument("orgUserName" -> testOrgAccount.orgUserName)))
+    userAccountRepository.collection.flatMap(_.drop(failIfNotFound = false))
+    orgAccountRepository.collection.flatMap(_.drop(failIfNotFound = false))
     classRoomRepository.collection.flatMap(_.drop(failIfNotFound = false))
     regCodeRepository.collection.flatMap(_.drop(failIfNotFound = false))
   }
